@@ -39,8 +39,8 @@ def Boussinesq_convection_flow_3d__initialvalue(t, x, y):
     R1 = jnp.sqrt(x ** 2 + (y - jnp.pi) ** 2)
     R2 = jnp.abs(x - 2 * jnp.pi)
     R3 = 1.95 * jnp.pi
-    rho1[jnp.abs(R1) < jnp.pi] = jnp.exp(1 - jnp.pi ** 2 / (jnp.pi ** 2 - R1[jnp.abs(R1) < jnp.pi] ** 2))
-    rho2[R2 < R3] = jnp.exp(1 - R3 ** 2 / (R3 ** 2 - R2[R2 < R3] ** 2))
+    rho1 = jnp.exp(1 - jnp.pi ** 2 / (jnp.pi ** 2 - R1 ** 2)) * (jnp.abs(R1) < jnp.pi)
+    rho2 = jnp.exp(1 - R3 ** 2 / (R3 ** 2 - R2 ** 2)) * (R2 < R3)
     R = 50 * rho1 * rho2 * (1 - rho1)
 
     return R*0, R*0, R*0, R

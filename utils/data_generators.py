@@ -556,8 +556,8 @@ def _test_generator_klein_gordon3d(model, nc_test, k):
 @partial(jax.jit, static_argnums=(0, 1,))
 def _test_generator_Boussinesq_convection_flow_3d(model, nc_test):
     t = jnp.linspace(0, 5, nc_test)
-    x = jnp.linspace(0, 2*jnp.py, nc_test)
-    y = jnp.linspace(0, 2*jnp.py, nc_test)
+    x = jnp.linspace(0, 2*jnp.pi, nc_test)
+    y = jnp.linspace(0, 2*jnp.pi, nc_test)
     t = jax.lax.stop_gradient(t)
     x = jax.lax.stop_gradient(x)
     y = jax.lax.stop_gradient(y)

@@ -49,7 +49,7 @@ def apply_model_spinn(apply_fn, params, tc, xc, yc, ti, xi, yi, w0_gt, u0_gt, v0
         R_rho = rho_t + uv[0] * rho_x + uv[1] * rho_y
 
 
-        R_w = w_t + uv[0]*w_x + uv[1]*w_y + rho_x
+        R_w = w_t + uv[0]*w_x + uv[1]*w_y + rho_y
 
         # incompressible fluid constraint
         u_x = jvp(lambda x: apply_fn(params, t, x, y)[0], (x,), (vec_xy,))[1]
@@ -75,7 +75,8 @@ def apply_model_spinn(apply_fn, params, tc, xc, yc, ti, xi, yi, w0_gt, u0_gt, v0
 
     # loss function w.r.t learnable parameters
     # no boundary loss since we're using exact periodic b.c
-    loss_fn = lambda params: residual_loss(params, tc, xc, yc) + lbda_ic*initial_loss(params, ti, jnp.transpose(xi), jnp.transpose(yi), w0_gt, u0_gt, v0_gt, rho0_gt)
+    # loss_fn = lambda params: residual_loss(params, tc, xc, yc) + lbda_ic*initial_loss(params, ti, jnp.transpose(xi), jnp.transpose(yi), w0_gt, u0_gt, v0_gt, rho0_gt)
+    loss_fn = lambda params: residual_loss(params, tc, xc, yc) + lbda_ic*initial_loss(params, ti, xi, yi, w0_gt, u0_gt, v0_gt, rho0_gt)
     loss, gradient = jax.value_and_grad(loss_fn)(params)
 
     return loss, gradient
@@ -168,7 +169,7 @@ if __name__ == '__main__':
     
     # get data
     tc_mult, xc_mult, yc_mult, ti, xi, yi, w0, u0, v0, rho0 = train_data
-    tc, xc, yc = tc_mult[0], xc_mult[0], yc_mult[0]
+    tc, xc, yc = tc_mult, xc_mult, yc_mult
 
     # start training
     for e in trange(1, args.epochs + 1):
@@ -184,12 +185,12 @@ if __name__ == '__main__':
         loss, gradient = apply_model_spinn(apply_fn, params, tc, xc, yc, ti, xi, yi, w0, u0, v0, rho0, args.lbda_c, args.lbda_ic)
         params, state = update_model(optim, gradient, params, state)
 
-        if e % 100 == 0 and e > args.epochs*0.7:
-            if loss < best:
-                best = loss
-                best_error = eval_fn(apply_fn, params, *test_data)
-                # save next IC prediction for time marching
-                save_next_IC(root_dir, name, apply_fn,params, test_data, args.step_idx, e)
+        # if e % 100 == 0 and e > args.epochs*0.7:
+        #     if loss < best:
+        #         best = loss
+        #         best_error = eval_fn(apply_fn, params, *test_data)
+        #         # save next IC prediction for time marching
+        #         save_next_IC(root_dir, name, apply_fn,params, test_data, args.step_idx, e)
 
         # log
         if e % args.log_iter == 0:

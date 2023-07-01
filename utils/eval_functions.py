@@ -38,6 +38,13 @@ def _eval3d_ns_spinn(apply_fn, params, *test_data):
 
 
 @partial(jax.jit, static_argnums=(0,))
+def _eval3d_bous_spinn(apply_fn, params, *test_data):
+    x, y, z, u_gt, _, _, _ = test_data
+    pred = velocity_to_vorticity_fwd(apply_fn, params, x, y, z)
+    return relative_l2(pred, u_gt)
+
+
+@partial(jax.jit, static_argnums=(0,))
 def _eval4d(apply_fn, params, *test_data):
     t, x, y, z, u_gt = test_data
     return relative_l2(apply_fn(params, t, x, y, z), u_gt)
@@ -80,6 +87,8 @@ def setup_eval_function(model, equation):
             fn = _eval3d_ns_pinn
         elif model == 'spinn' and equation == 'navier_stokes3d':
             fn = _eval3d_ns_spinn
+        elif model == 'spinn' and equation == 'Boussinesq_convection_flow_3d':
+            fn = _eval3d_bous_spinn
         else:
             fn = _eval3d
     elif dim == '4d':

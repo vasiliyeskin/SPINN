@@ -552,19 +552,23 @@ def _test_generator_klein_gordon3d(model, nc_test, k):
     return t, x, y, u_gt
 
 
-#----------------------- Klein-Gordon equation 3-d -------------------------#
+#----------------------- Boussinesq convection flow 3-d -------------------------#
 @partial(jax.jit, static_argnums=(0, 1,))
 def _test_generator_Boussinesq_convection_flow_3d(model, nc_test):
-    t = jnp.linspace(0, 5, nc_test)
-    x = jnp.linspace(0, 2*jnp.pi, nc_test)
-    y = jnp.linspace(0, 2*jnp.pi, nc_test)
+    t = jnp.linspace(0, 3, nc_test)
+    x = jnp.linspace(0, 2*jnp.pi, 128)
+    y = jnp.linspace(0, 2*jnp.pi, 128)
     t = jax.lax.stop_gradient(t)
     x = jax.lax.stop_gradient(x)
     y = jax.lax.stop_gradient(y)
+    tm, xm, ym = jnp.meshgrid(
+        t, x, y, indexing='ij'
+    )
     t = t.reshape(-1, 1)
     x = x.reshape(-1, 1)
     y = y.reshape(-1, 1)
-    return t, x, y, x*0, x*0, x*0, x*0
+
+    return t, x, y, tm*0, tm*0, tm*0, tm*0
 
 
 #----------------------- Klein-Gordon equation 4-d -------------------------#

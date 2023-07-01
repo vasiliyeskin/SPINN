@@ -210,7 +210,6 @@ def _spinn_train_generator_klein_gordon3d(nc, k, key):
 
 #============== _spinn_train_generator_Boussinesq_convection_flow_3d =======#
 #---------------------------------- SPINN ----------------------------------#
-@partial(jax.jit, static_argnums=(0,))
 def _spinn_train_generator_Boussinesq_convection_flow_3d(nt, nxy, data_dir, result_dir, marching_steps, step_idx, offset_num, key):
     keys = jax.random.split(key, 3)
     # collocation points

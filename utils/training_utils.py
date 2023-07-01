@@ -83,9 +83,9 @@ def name_model(args):
     ]
     if args.model != 'spinn':
         del name[-1]
-    if args.equation != 'navier_stokes3d':
+    if args.equation != 'navier_stokes3d' and  args.equation != 'Boussinesq_convection_flow_3d':
         name.insert(0, f'nc{args.nc}')
-    if args.equation == 'navier_stokes3d':
+    if args.equation == 'navier_stokes3d' or  args.equation != 'Boussinesq_convection_flow_3d':
         name.insert(0, f'nxy{args.nxy}')
         name.insert(0, f'nt{args.nt}')
         name.append(f'on{args.offset_num}')

@@ -692,7 +692,7 @@ def generate_test_data(args, result_dir):
 
     elif eqn == 'Boussinesq_convection_flow_3d':
         data = _test_generator_Boussinesq_convection_flow_3d(
-            args.model, args.nc_test
+            args.model, 10
         )
     elif eqn == 'navier_stokes4d':
         data = _test_generator_navier_stokes4d(

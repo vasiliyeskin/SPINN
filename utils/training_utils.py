@@ -45,7 +45,7 @@ def setup_networks(args, key):
             jnp.ones((args.nc, 1))
         )
     elif dim == '3d':
-        if args.equation == 'navier_stokes3d':
+        if args.equation == 'navier_stokes3d' or  args.equation == 'Boussinesq_convection_flow_3d':
             params = model.init(
                 key,
                 jnp.ones((args.nt, 1)),

@@ -220,6 +220,55 @@ def _navier_stokes3d(apply_fn, params, test_data, result_dir, e):
     plt.close()
 
 
+
+def _boussinesq_convection_flow_3d(apply_fn, params, test_data, result_dir, e):
+    print("visualizing solution...")
+
+    nt, nx, ny = test_data[0].shape[0], test_data[1].shape[0], test_data[2].shape[0]
+
+    t = test_data[0][-1]
+    t = jnp.expand_dims(t, axis=1)
+
+    # w_pred = velocity_to_vorticity_fwd(apply_fn, params, t, test_data[1], test_data[2])
+    # w_pred = w_pred.reshape(-1, nx, ny)
+    # w_ref = test_data[-1][-1]
+
+    u0, v0, rho0_pred = apply_fn(params, t, test_data[1], test_data[2])
+    rho0_pred = rho0_pred.reshape(-1, nx, ny)
+    rho0_ref = test_data[-1][-1]
+
+    os.makedirs(os.path.join(result_dir, f'vis/{e:05d}'), exist_ok=True)
+
+    fig = plt.figure(figsize=(14, 5))
+
+    # reference solution
+    ax1 = fig.add_subplot(131)
+    im = ax1.imshow(rho0_ref, cmap='jet', extent=[0, 2*jnp.pi, 0, 2*jnp.pi], vmin=jnp.min(rho0_ref), vmax=jnp.max(rho0_ref))
+    ax1.set_xlabel('$x$')
+    ax1.set_ylabel('$y$')
+    ax1.set_title(f'Reference $\omega(t={jnp.round(t[0][0], 1):.2f}, x, y)$', fontsize=15)
+
+    # predicted solution
+    ax1 = fig.add_subplot(132)
+    im = ax1.imshow(rho0_pred[0], cmap='jet', extent=[0, 2*jnp.pi, 0, 2*jnp.pi], vmin=jnp.min(rho0_ref), vmax=jnp.max(rho0_ref))
+    ax1.set_xlabel('$x$')
+    ax1.set_ylabel('$y$')
+    ax1.set_title(f'Predicted $\omega(t={jnp.round(t[0][0], 1):.2f}, x, y)$', fontsize=15)
+
+    # absolute error
+    ax1 = fig.add_subplot(133)
+    im = ax1.imshow(jnp.abs(rho0_ref - rho0_pred[0]), cmap='jet', extent=[0, 2*jnp.pi, 0, 2*jnp.pi], vmin=jnp.min(rho0_ref), vmax=jnp.max(rho0_ref))
+    ax1.set_xlabel('$x$')
+    ax1.set_ylabel('$y$')
+    ax1.set_title(f'Asolute error', fontsize=15)
+
+    cbar_ax = fig.add_axes([0.95, 0.3, 0.01, 0.4])
+    fig.colorbar(im, cax=cbar_ax)
+    plt.savefig(os.path.join(result_dir, f'vis/{e:05d}/pred.png'))
+    plt.show()
+    plt.close()
+
+
 def _navier_stokes4d(apply_fn, params, test_data, result_dir, e):
     print("visualizing solution...")
 
@@ -260,6 +309,8 @@ def show_solution(args, apply_fn, params, test_data, result_dir, e, resol=50):
         _klein_gordon3d(args, apply_fn, params, result_dir, e, resol)
     elif args.equation == 'navier_stokes3d':
         _navier_stokes3d(apply_fn, params, test_data, result_dir, e)
+    elif args.equation == 'Boussinesq_convection_flow_3d':
+        _boussinesq_convection_flow_3d(apply_fn, params, test_data, result_dir, e)
     elif args.equation == 'navier_stokes4d':
         _navier_stokes4d(apply_fn, params, test_data, result_dir, e)
     else:

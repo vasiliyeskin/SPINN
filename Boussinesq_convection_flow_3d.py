@@ -86,11 +86,11 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Training configurations')
 
     # data directory
-    parser.add_argument('--data_dir', type=str, default='./data/navier_stokes', help='a directory to reference solution')
+    parser.add_argument('--data_dir', type=str, default='./data/Boussinesq_convection_flow_3d', help='a directory to reference solution')
 
     # model and equation
     parser.add_argument('--model', type=str, default='spinn', choices=['spinn', 'pinn'], help='model name (pinn; spinn)')
-    parser.add_argument('--equation', type=str, default='navier_stokes3d', help='equation to solve')
+    parser.add_argument('--equation', type=str, default='Boussinesq_convection_flow_3d', help='equation to solve')
     
     # input data settings
     parser.add_argument('--nt', type=int, default=None, help='the number of time points for time axis')
@@ -167,7 +167,7 @@ if __name__ == '__main__':
     best = 10000000.
     
     # get data
-    tc_mult, xc_mult, yc_mult, ti, xi, yi, w0, u0, v0 = train_data
+    tc_mult, xc_mult, yc_mult, ti, xi, yi, w0, u0, v0, rho0 = train_data
     tc, xc, yc = tc_mult[0], xc_mult[0], yc_mult[0]
 
     # start training
@@ -176,10 +176,10 @@ if __name__ == '__main__':
             # exclude compiling time
             start = time.time()
 
-        if e % args.offset_iter == 0:
-            # change input
-            offset_idx = (e // args.offset_iter) % args.offset_num
-            tc, xc, yc = tc_mult[offset_idx], xc_mult[offset_idx], yc_mult[offset_idx]
+        # if e % args.offset_iter == 0:
+        #     # change input
+        #     offset_idx = (e // args.offset_iter) % args.offset_num
+        #     tc, xc, yc = tc_mult[offset_idx], xc_mult[offset_idx], yc_mult[offset_idx]
 
         loss, gradient = apply_model_spinn(apply_fn, params, tc, xc, yc, ti, xi, yi, w0, u0, v0, rho0, args.lbda_c, args.lbda_ic)
         params, state = update_model(optim, gradient, params, state)

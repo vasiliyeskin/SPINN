@@ -205,6 +205,30 @@ def _spinn_train_generator_klein_gordon3d(nc, k, key):
     return tc, xc, yc, uc, ti, xi, yi, ui, tb, xb, yb, ub
 
 
+
+
+
+#============== _spinn_train_generator_Boussinesq_convection_flow_3d =======#
+#---------------------------------- SPINN ----------------------------------#
+@partial(jax.jit, static_argnums=(0,))
+def _spinn_train_generator_Boussinesq_convection_flow_3d(nt, nxy, data_dir, result_dir, marching_steps, step_idx, offset_num, key):
+    keys = jax.random.split(key, 3)
+    # collocation points
+    # collocation points
+    tc = jnp.expand_dims(jnp.linspace(start=0., stop=5, num=nt, endpoint=False), axis=1)
+    xc = jnp.expand_dims(jnp.linspace(start=0., stop=2.*jnp.pi, num=nxy, endpoint=False), axis=1)
+    yc = jnp.expand_dims(jnp.linspace(start=0., stop=2.*jnp.pi, num=nxy, endpoint=False), axis=1)
+
+    # initial points
+    ti = jnp.zeros((1, 1))
+    xi = xc
+    yi = yc
+    ti_mesh, xi_mesh, yi_mesh = jnp.meshgrid(ti.ravel(), xi.ravel(), yi.ravel(), indexing='ij')
+    w0, u0, v0, rho0 = Boussinesq_convection_flow_3d__initialvalue(ti_mesh, xi_mesh, yi_mesh)
+
+    return tc, xc, yc, ti, xi, yi, w0, u0, v0, rho0
+
+
 #======================== Klein-Gordon equation 4-d ========================#
 #---------------------------------- PINN -----------------------------------#
 @partial(jax.jit, static_argnums=(0,))
@@ -440,6 +464,10 @@ def generate_train_data(args, key, result_dir=None):
             data = _spinn_train_generator_navier_stokes3d(
                 args.nt, args.nxy, args.data_dir, result_dir, args.marching_steps, args.step_idx, args.offset_num, key
             )
+        elif eqn == 'Boussinesq_convection_flow_3d':
+            data = _spinn_train_generator_Boussinesq_convection_flow_3d(
+                args.nt, args.nxy, args.data_dir, result_dir, args.marching_steps, args.step_idx, args.offset_num, key
+            )
         elif eqn == 'navier_stokes4d':
             data = _spinn_train_generator_navier_stokes4d(
                 args.nc, args.nu, key
@@ -523,6 +551,21 @@ def _test_generator_klein_gordon3d(model, nc_test, k):
         x = x.reshape(-1, 1)
         y = y.reshape(-1, 1)
     return t, x, y, u_gt
+
+
+#----------------------- Klein-Gordon equation 3-d -------------------------#
+@partial(jax.jit, static_argnums=(0, 1,))
+def _test_generator_Boussinesq_convection_flow_3d(model, nc_test):
+    t = jnp.linspace(0, 5, nc_test)
+    x = jnp.linspace(0, 2*jnp.py, nc_test)
+    y = jnp.linspace(0, 2*jnp.py, nc_test)
+    t = jax.lax.stop_gradient(t)
+    x = jax.lax.stop_gradient(x)
+    y = jax.lax.stop_gradient(y)
+    t = t.reshape(-1, 1)
+    x = x.reshape(-1, 1)
+    y = y.reshape(-1, 1)
+    return t, x, y, x*0, x*0, x*0, x*0
 
 
 #----------------------- Klein-Gordon equation 4-d -------------------------#
@@ -646,6 +689,11 @@ def generate_test_data(args, result_dir):
     elif eqn == 'navier_stokes3d':
         data = _test_generator_navier_stokes3d(
             args.model, args.data_dir, result_dir, args.marching_steps, args.step_idx
+        )
+
+    elif eqn == 'Boussinesq_convection_flow_3d':
+        data = _test_generator_Boussinesq_convection_flow_3d(
+            args.model, args.nc_test
         )
     elif eqn == 'navier_stokes4d':
         data = _test_generator_navier_stokes4d(

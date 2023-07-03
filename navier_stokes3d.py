@@ -15,6 +15,8 @@ from utils.training_utils import *
 from utils.visualizer import show_solution
 from utils.vorticity import velocity_to_vorticity_fwd
 
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+os.environ["XLA_PYTHON_CLIENT_PREALLOCATE"] = "false"
 
 # loss function for navier stokes (SPINN)
 @partial(jax.jit, static_argnums=(0,))

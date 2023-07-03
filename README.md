@@ -1,5 +1,12 @@
 # Jax implementation of Separable PINN
-### [[arxiv]](https://arxiv.org/abs/2306.15969) [[project page]](https://jwcho5576.github.io/spinn_project_page/)
+
+
+
+https://github.com/stnamjef/SPINN/assets/94037424/8cd0d32d-a969-4608-b734-fbb81e19b48f
+
+
+
+### [[arxiv]](https://arxiv.org/abs/2306.15969) [[project page]](https://jwcho5576.github.io/spinn.github.io)
 
 [Junwoo Cho](https://github.com/jwcho5576)\*, 
 [Seungtae Nam](https://github.com/stnamjef)\*, 
@@ -7,14 +14,19 @@
 [Youngjoon Hong](https://www.youngjoonhong.com/), 
 [Seok-Bae Yun](https://seokbaeyun.wordpress.com/), 
 [Eunbyun Park](https://silverbottlep.github.io/)&dagger;\
-*Equal contribution, &dagger;Corresponding author.\
-The Symbiosis of Deep Learning and Differential Equations (DLDE), NeurIPS 2022 Workshop.
+*Equal contribution, &dagger;Corresponding author.
+
+
+
+
+
+
 
 # Architecture overview
-![architecture](./assets/architecture.png)
+![architecture](https://github.com/stnamjef/SPINN/assets/94037424/bab3aa81-2985-4b7b-9a2b-c901ba1a86a7)
 
 * SPINN consists of multiple MLPs, each of which takes an individual 1-dimensional coordinate as an input.
-* The output is constructed by a simple product and summation.
+* The output is constructed by a simple product and summation which can be interpreted as a low-rank decomposed representation.
 
 
 
@@ -44,13 +56,17 @@ docker run -it -v $(pwd):/workspace -p 8888:8888 --gpus all --ipc host --name sp
 jupyter notebook --allow-root --ip 0.0.0.0 --port 8888
 ```
 
+# Data for 2D Navier-Stokes equation
+You can find the original data here:
+https://github.com/PredictiveIntelligenceLab/CausalPINNs/tree/main/data
+
 # Training 
-* you can run each experiment by running ```<EQUATION_Nd>.py```.
+* you can run each experiment by running ```<EQUATIONnd>.py```.
 * to disable the memory preallocation, assign the environment variable ```XLA_PYTHON_CLIENT_PREALLOCATE``` to ```false```.
 ```
-XLA_PYTHON_CLIENT_PREALLOCATE=false CUDA_VISIBLE_DEVICES=0 python <EQUATION_Nd>.py --model=<MODEL> --equation=<EQUATION_Nd>
+XLA_PYTHON_CLIENT_PREALLOCATE=false CUDA_VISIBLE_DEVICES=0 python <EQUATIONnd>.py --model=<MODEL> --equation=<EQUATIONnd>
 ```
-* you can also reproduce with our configurations by running the scripts ```SPINN/scripts/<EQUATION_Nd_MODEL>.sh```
+* you can also reproduce with our configurations by running the scripts ```SPINN/scripts/<EQUATIONnd_MODEL>.sh```
 * configurations   
 ```--data_dir```: directory to the reference data if needed   
 ```--model```: model (PINN or SPINN)   
@@ -80,19 +96,13 @@ XLA_PYTHON_CLIENT_PREALLOCATE=false CUDA_VISIBLE_DEVICES=0 python <EQUATION_Nd>.
 ```--lbda_ic```: (NAVIER_STOKES_EQUATION 3D and 4D) weighting factor for initial condition loss   
 
 
-
-
-# Example (Klein-Gordon Eq.)
-\\<!--#### Please visit our [project page](https://jwcho5576.github.io/spinn/) for more examples.-->
-
-https://user-images.githubusercontent.com/47411051/217729201-7e0c2a1d-6d13-4352-9bd6-5054d8ead37d.mp4
-
 # Citation
 
 ```
-@inproceedings{choseparable,
-  title={Separable PINN: Mitigating the Curse of Dimensionality in Physics-Informed Neural Networks},
+@article{cho2023separable,
+  title={Separable Physics-Informed Neural Networks},
   author={Cho, Junwoo and Nam, Seungtae and Yang, Hyunmo and Yun, Seok-Bae and Hong, Youngjoon and Park, Eunbyung},
-  booktitle={The Symbiosis of Deep Learning and Differential Equations II}
+  journal={arXiv preprint arXiv:2306.15969},
+  year={2023}
 }
 ```

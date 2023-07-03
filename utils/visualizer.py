@@ -226,7 +226,7 @@ def _boussinesq_convection_flow_3d(apply_fn, params, test_data, result_dir, e):
 
     nt, nx, ny = test_data[0].shape[0], test_data[1].shape[0], test_data[2].shape[0]
 
-    t = test_data[0][1]
+    t = test_data[0][-1]
     t = jnp.expand_dims(t, axis=1)
 
     # w_pred = velocity_to_vorticity_fwd(apply_fn, params, t, test_data[1], test_data[2])

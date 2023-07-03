@@ -210,10 +210,10 @@ def _spinn_train_generator_klein_gordon3d(nc, k, key):
 
 #============== _spinn_train_generator_Boussinesq_convection_flow_3d =======#
 #---------------------------------- SPINN ----------------------------------#
-def _spinn_train_generator_Boussinesq_convection_flow_3d(nt, nxy, data_dir, result_dir, marching_steps, step_idx, offset_num, key):
+def _spinn_train_generator_Boussinesq_convection_flow_3d(time_end, nt, nxy, data_dir, result_dir, marching_steps, step_idx, offset_num, key):
     keys = jax.random.split(key, 3)
     # collocation points
-    tc = jnp.expand_dims(jnp.linspace(start=0., stop=3, num=nt, endpoint=False), axis=1)
+    tc = jnp.expand_dims(jnp.linspace(start=0., stop=time_end, num=nt, endpoint=False), axis=1)
     xc = jnp.expand_dims(jnp.linspace(start=0., stop=2.*jnp.pi, num=nxy, endpoint=False), axis=1)
     yc = jnp.expand_dims(jnp.linspace(start=0., stop=2.*jnp.pi, num=nxy, endpoint=False), axis=1)
 
@@ -507,7 +507,7 @@ def generate_train_data(args, key, result_dir=None):
             )
         elif eqn == 'Boussinesq_convection_flow_3d':
             data = _spinn_train_generator_Boussinesq_convection_flow_3d(
-                args.nt, args.nxy, args.data_dir, result_dir, args.marching_steps, args.step_idx, args.offset_num, key
+                args.time_end, args.nt, args.nxy, args.data_dir, result_dir, args.marching_steps, args.step_idx, args.offset_num, key
             )
         elif eqn == 'navier_stokes4d':
             data = _spinn_train_generator_navier_stokes4d(
@@ -595,10 +595,10 @@ def _test_generator_klein_gordon3d(model, nc_test, k):
 
 
 #----------------------- Boussinesq convection flow 3-d -------------------------#
-@partial(jax.jit, static_argnums=(0, 1,))
-def _test_generator_Boussinesq_convection_flow_3d(model, nc_test):
+@partial(jax.jit, static_argnums=(0, 1, 2,))
+def _test_generator_Boussinesq_convection_flow_3d(time_end, model, nc_test):
 # def _test_generator_Boussinesq_convection_flow_3d(model, nc_test, data_dir, result_dir, marching_steps, step_idx):
-    t = jnp.linspace(0, 3, nc_test)
+    t = jnp.linspace(start=0., stop=time_end, num=nc_test)
     x = jnp.linspace(0, 2*jnp.pi, 128)
     y = jnp.linspace(0, 2*jnp.pi, 128)
     t = jax.lax.stop_gradient(t)
@@ -757,7 +757,7 @@ def generate_test_data(args, result_dir):
 
     elif eqn == 'Boussinesq_convection_flow_3d':
         data = _test_generator_Boussinesq_convection_flow_3d(
-            args.model, 10
+            args.time_end, args.model, 10
         )
     elif eqn == 'navier_stokes4d':
         data = _test_generator_navier_stokes4d(

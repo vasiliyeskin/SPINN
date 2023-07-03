@@ -262,7 +262,7 @@ def _boussinesq_convection_flow_3d(apply_fn, params, test_data, result_dir, e):
 
         # predicted solution
         ax1 = fig.add_subplot(132)
-        im = ax1.pcolor(x, y, rho0_pred[0], cmap='RdBu', vmin=jnp.min(rho0_pred[0]), vmax=jnp.max(rho0_pred[0]))
+        im = ax1.pcolor(x, y, rho0_pred[0], cmap='rainbow', vmin=jnp.min(rho0_pred[0]), vmax=jnp.max(rho0_pred[0]))
         fig.colorbar(im)
         ax1.set_xlabel('$x$')
         ax1.set_ylabel('$y$')
@@ -271,7 +271,7 @@ def _boussinesq_convection_flow_3d(apply_fn, params, test_data, result_dir, e):
         # absolute error
         error = jnp.abs(rho0_ref - rho0_pred[0])
         ax1 = fig.add_subplot(133)
-        im = ax1.pcolor(x, y, error, cmap='RdBu', vmin=jnp.min(error), vmax=jnp.max(error))
+        im = ax1.pcolor(x, y, error, cmap='rainbow', vmin=jnp.min(error), vmax=jnp.max(error))
         ax1.set_xlabel('$x$')
         ax1.set_ylabel('$y$')
         ax1.set_title(f'Asolute error', fontsize=15)

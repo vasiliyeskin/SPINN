@@ -61,7 +61,7 @@ class PINN3d(nn.Module):
     def __call__(self, x, y, z):
         if self.pos_enc != 0:
             # freq = jnp.array([[2**k for k in range(int(-(self.pos_enc-1)/2), int((self.pos_enc+1)/2))]]) * jnp.pi
-            freq = jnp.array([[2**k for k in range(int(-(self.pos_enc-1)/2), int((self.pos_enc+1)/2))]])
+            freq = jnp.array([[2**k for k in range(int(-(self.pos_enc+1)/2), int((self.pos_enc+1)/2))]])
             x = jnp.concatenate((jnp.sin(x@freq), jnp.cos(x@freq)), 1)
             y = jnp.concatenate((jnp.sin(y@freq), jnp.cos(y@freq)), 1)
             z = jnp.concatenate((jnp.sin(z@freq), jnp.cos(z@freq)), 1)

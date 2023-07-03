@@ -56,7 +56,7 @@ def apply_model_spinn(apply_fn, params, tc, xc, yc, ti, xi, yi, w0_gt, u0_gt, v0
         v_y = jvp(lambda y: apply_fn(params, t, x, y)[1], (y,), (vec_xy,))[1]
         R_c = u_x + v_y
 
-        return jnp.mean(R_w**2) + lbda_c*jnp.mean(R_c**2) + lbda_c*jnp.mean(R_rho**2)
+        return jnp.mean(R_w**2) + lbda_c*jnp.mean(R_c**2) + jnp.mean(R_rho**2)
 
     def initial_loss(params, ti, xi, yi, w0_gt, u0_gt, v0_gt, rho0_gt):
         # use initial vorticity and velocity

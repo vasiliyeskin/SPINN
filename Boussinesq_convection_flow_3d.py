@@ -18,7 +18,7 @@ from utils.vorticity import velocity_to_vorticity_fwd
 
 # loss function for Boussinesq convection flow (SPINN)
 @partial(jax.jit, static_argnums=(0,))
-def apply_model_spinn(apply_fn, params, tc, xc, yc, ti, xi, yi, w0_gt, u0_gt, v0_gt, rho0_gt, lbda_c, lbda_ic):
+def apply_model_spinn(apply_fn, params, tc, xc, yc, ti, xi, yi, w0_gt, u0_gt, v0_gt, rho0_gt, lbda_c, lbda_ic, lbda_rho):
     def residual_loss(params, t, x, y):
         # compute [u, v]
         uv = apply_fn(params, t, x, y)
@@ -56,7 +56,7 @@ def apply_model_spinn(apply_fn, params, tc, xc, yc, ti, xi, yi, w0_gt, u0_gt, v0
         v_y = jvp(lambda y: apply_fn(params, t, x, y)[1], (y,), (vec_xy,))[1]
         R_c = u_x + v_y
 
-        return jnp.mean(R_w**2) + lbda_c*jnp.mean(R_c**2) + jnp.mean(R_rho**2)
+        return jnp.mean(R_w**2) + lbda_c*jnp.mean(R_c**2) + lbda_rho * jnp.mean(R_rho**2)
 
     def initial_loss(params, ti, xi, yi, w0_gt, u0_gt, v0_gt, rho0_gt):
         # use initial vorticity and velocity
@@ -104,6 +104,7 @@ if __name__ == '__main__':
     parser.add_argument('--offset_num', type=int, default=8, help='the number of offsets in training data')
     parser.add_argument('--offset_iter', type=int, default=100, help='change offset every...')
     parser.add_argument('--lbda_c', type=int, default=5000, help='weighting factor for incompressible condition')
+    parser.add_argument('--lbda_rho', type=int, default=1000, help='weighting factor for continuity condition')
     parser.add_argument('--lbda_ic', type=int, default=10000, help='weighting factor for initial condition')
 
     # model settings
@@ -182,7 +183,7 @@ if __name__ == '__main__':
         #     offset_idx = (e // args.offset_iter) % args.offset_num
         #     tc, xc, yc = tc_mult[offset_idx], xc_mult[offset_idx], yc_mult[offset_idx]
 
-        loss, gradient = apply_model_spinn(apply_fn, params, tc, xc, yc, ti, xi, yi, w0, u0, v0, rho0, args.lbda_c, args.lbda_ic)
+        loss, gradient = apply_model_spinn(apply_fn, params, tc, xc, yc, ti, xi, yi, w0, u0, v0, rho0, args.lbda_c, args.lbda_ic, args.lbda_rho)
         params, state = update_model(optim, gradient, params, state)
 
         # if e % 100 == 0 and e > args.epochs*0.7:

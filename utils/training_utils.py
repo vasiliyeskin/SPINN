@@ -129,3 +129,15 @@ def save_next_IC(root_dir, name, apply_fn, params, test_data, step_idx, e):
     u0_pred, v0_pred = jnp.squeeze(u0_pred), jnp.squeeze(v0_pred)
     
     scipy.io.savemat(os.path.join(root_dir, name, f'IC_pred/w0_{step_idx+1}.mat'), mdict={'w0': w_pred, 'u0': u0_pred, 'v0': v0_pred, 't': jnp.expand_dims(test_data[0][-1], axis=1)})
+
+
+# save next initial condition for time-marching for Boussinesq equation
+def save_next_IC_for_Boussinesq(root_dir, name, apply_fn, params, test_data, step_idx, e):
+    os.makedirs(os.path.join(root_dir, name, 'IC_pred'), exist_ok=True)
+
+    w_pred = velocity_to_vorticity_fwd(apply_fn, params, jnp.expand_dims(test_data[0][-1], axis=1), test_data[1], test_data[2])
+    w_pred = w_pred.reshape(-1, test_data[1].shape[0], test_data[2].shape[0])[0]
+    u0_pred, v0_pred, rho0_pred = apply_fn(params, jnp.expand_dims(test_data[0][-1], axis=1), test_data[1], test_data[2])
+    u0_pred, v0_pred, rho0_pred = jnp.squeeze(u0_pred), jnp.squeeze(v0_pred), jnp.squeeze(rho0_pred)
+
+    scipy.io.savemat(os.path.join(root_dir, name, f'IC_pred/w0_{step_idx+1}.mat'), mdict={'w0': w_pred, 'u0': u0_pred, 'v0': v0_pred, 'rho0': rho0_pred, 't': jnp.expand_dims(test_data[0][-1], axis=1)})

@@ -49,7 +49,7 @@ def apply_model_spinn(apply_fn, params, tc, xc, yc, ti, xi, yi, w0_gt, u0_gt, v0
         R_rho = rho_t + uv[0] * rho_x + uv[1] * rho_y
 
 
-        R_w = w_t + uv[0] * w_x + uv[1] * w_y + 9.8 * rho_x
+        R_w = w_t + uv[0] * w_x + uv[1] * w_y - rho_x
 
         # incompressible fluid constraint
         u_x = jvp(lambda x: apply_fn(params, t, x, y)[0], (x,), (vec_xy,))[1]

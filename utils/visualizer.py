@@ -6,6 +6,7 @@ from matplotlib.gridspec import GridSpec
 from utils.vorticity import velocity_to_vorticity_fwd
 from utils.data_utils import helmholtz3d_exact_u, klein_gordon3d_exact_u
 from utils.vorticity import vorx, vory, vorz
+import seaborn as sns
 
 import pdb
 
@@ -260,6 +261,7 @@ def _boussinesq_convection_flow_3d(apply_fn, params, test_data, result_dir, e):
         ax1.set_ylabel('$y$')
         ax1.set_title(f'Reference $\\rho(t={jnp.round(t[0][0], 1):.2f}, x, y)$', fontsize=15)
 
+        cmap = sns.color_palette('icefire', as_cmap=True)
         # predicted solution
         ax1 = fig.add_subplot(132)
         im = ax1.pcolor(x, y, rho0_pred[0], cmap='rainbow', vmin=jnp.min(rho0_pred[0]), vmax=jnp.max(rho0_pred[0]))

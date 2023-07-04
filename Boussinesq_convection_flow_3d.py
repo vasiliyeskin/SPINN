@@ -81,10 +81,59 @@ def apply_model_spinn(apply_fn, params, tc, xc, yc, ti, xi, yi, w0_gt, u0_gt, v0
     return loss, gradient
 
 
+@partial(jax.jit, static_argnums=(0,))
+def get_lambdas(apply_fn, params, t, x, y, gamma, eta_star, lambda_i__c, lambda_i__w, lambda_i__rho):
+    # compute [u, v]
+    uv = apply_fn(params, t, x, y)
+
+    vec_t = jnp.ones(t.shape)
+    vec_xy = jnp.ones(x.shape)
+    w_t = jvp(
+        lambda t: velocity_to_vorticity_fwd(apply_fn, params, t, x, y),
+        (t,),
+        (vec_t,)
+    )[1]
+    w_x = jvp(
+        lambda x: velocity_to_vorticity_fwd(apply_fn, params, t, x, y),
+        (x,),
+        (vec_xy,)
+    )[1]
+    w_y = jvp(
+        lambda y: velocity_to_vorticity_fwd(apply_fn, params, t, x, y),
+        (y,),
+        (vec_xy,)
+    )[1]
+    rho_t = jvp(lambda t: apply_fn(params, t, x, y)[2], (t,), (vec_t,))[1]
+    rho_x = jvp(lambda x: apply_fn(params, t, x, y)[2], (x,), (vec_xy,))[1]
+    rho_y = jvp(lambda y: apply_fn(params, t, x, y)[2], (y,), (vec_xy,))[1]
+
+
+    # PDE constraint
+    R_rho = rho_t + uv[0] * rho_x + uv[1] * rho_y
+    abs_rho = jnp.abs(R_rho)
+    max_abs_rho = jnp.max(abs_rho)
+
+    R_w = w_t + uv[0] * w_x + uv[1] * w_y - rho_x
+    abs_w = jnp.abs(R_w)
+    max_abs_w = jnp.max(abs_w)
+
+    # incompressible fluid constraint
+    u_x = jvp(lambda x: apply_fn(params, t, x, y)[0], (x,), (vec_xy,))[1]
+    v_y = jvp(lambda y: apply_fn(params, t, x, y)[1], (y,), (vec_xy,))[1]
+    R_c = u_x + v_y
+    abs_c = jnp.abs(R_c)
+    max_abs_c = jnp.max(abs_c)
+
+    lambda_i__c = gamma * lambda_i__c + eta_star * abs_c / max_abs_c
+    lambda_i__w = gamma * lambda_i__w + eta_star * abs_w / max_abs_w
+    lambda_i__rho = gamma * lambda_i__rho + eta_star * abs_rho / max_abs_rho
+
+    return lambda_i__c, lambda_i__w, lambda_i__rho
+
 
 # loss function for Boussinesq convection flow (SPINN)
 @partial(jax.jit, static_argnums=(0,))
-def apply_model_spinn_RBA(apply_fn, params, tc, xc, yc, ti, xi, yi, w0_gt, u0_gt, v0_gt, rho0_gt, lbda_c, lbda_ic, lbda_rho, lbda_w, gamma, eta_star, lambda_i__c, lambda_i__w, lambda_i__rho):
+def apply_model_spinn_RBA(apply_fn, params, tc, xc, yc, ti, xi, yi, w0_gt, u0_gt, v0_gt, rho0_gt, lbda_c, lbda_ic, lbda_rho, lbda_w, lambda_i__c, lambda_i__w, lambda_i__rho):
     def residual_loss(params, t, x, y, lambda_i__c, lambda_i__w, lambda_i__rho):
         # compute [u, v]
         uv = apply_fn(params, t, x, y)
@@ -113,23 +162,23 @@ def apply_model_spinn_RBA(apply_fn, params, tc, xc, yc, ti, xi, yi, w0_gt, u0_gt
 
         # PDE constraint
         R_rho = rho_t + uv[0] * rho_x + uv[1] * rho_y
-        abs_rho = jnp.abs(R_rho)
-        max_abs_rho = jnp.max(abs_rho)
+        # abs_rho = jnp.abs(R_rho)
+        # max_abs_rho = jnp.max(abs_rho)
 
         R_w = w_t + uv[0] * w_x + uv[1] * w_y - rho_x
-        abs_w = jnp.abs(R_w)
-        max_abs_w = jnp.max(abs_w)
+        # abs_w = jnp.abs(R_w)
+        # max_abs_w = jnp.max(abs_w)
 
         # incompressible fluid constraint
         u_x = jvp(lambda x: apply_fn(params, t, x, y)[0], (x,), (vec_xy,))[1]
         v_y = jvp(lambda y: apply_fn(params, t, x, y)[1], (y,), (vec_xy,))[1]
         R_c = u_x + v_y
-        abs_c = jnp.abs(R_c)
-        max_abs_c = jnp.max(abs_c)
+        # abs_c = jnp.abs(R_c)
+        # max_abs_c = jnp.max(abs_c)
 
-        lambda_i__c = gamma * lambda_i__c + eta_star * abs_c / max_abs_c
-        lambda_i__w = gamma * lambda_i__w + eta_star * abs_w / max_abs_w
-        lambda_i__rho = gamma * lambda_i__rho + eta_star * abs_rho / max_abs_rho
+        # lambda_i__c = gamma * lambda_i__c + eta_star * abs_c / max_abs_c
+        # lambda_i__w = gamma * lambda_i__w + eta_star * abs_w / max_abs_w
+        # lambda_i__rho = gamma * lambda_i__rho + eta_star * abs_rho / max_abs_rho
 
         return jnp.mean((lambda_i__w * R_w)**2) + jnp.mean((lambda_i__c * R_c)**2) + jnp.mean((lambda_i__rho * R_rho)**2)
 
@@ -267,8 +316,12 @@ if __name__ == '__main__':
 
         if args.RBA:
             ### approach from the paper https://arxiv.org/abs/2307.00379
-            gamma, eta_star = 0.999, 0.01
-            loss, gradient = apply_model_spinn_RBA(apply_fn, params, tc, xc, yc, ti, xi, yi, w0, u0, v0, rho0, args.lbda_c, args.lbda_ic, args.lbda_rho, args.lbda_w, gamma, eta_star, lambda_i__c, lambda_i__w, lambda_i__rho)
+
+            gamma, eta_star = 0.99, 0.01
+            lambda_i__c, lambda_i__w, lambda_i__rho = get_lambdas(apply_fn,params, tc, xc, yc, gamma, eta_star, lambda_i__c, lambda_i__w, lambda_i__rho)
+            loss, gradient = apply_model_spinn_RBA(apply_fn, params, tc, xc, yc, ti, xi, yi, w0, u0, v0, rho0, args.lbda_c, args.lbda_ic, args.lbda_rho, args.lbda_w, lambda_i__c, lambda_i__w, lambda_i__rho)
+            #
+            # print(lambda_i__c)
         else:
             loss, gradient = apply_model_spinn(apply_fn, params, tc, xc, yc, ti, xi, yi, w0, u0, v0, rho0, args.lbda_c, args.lbda_ic, args.lbda_rho, args.lbda_w)
         params, state = update_model(optim, gradient, params, state)

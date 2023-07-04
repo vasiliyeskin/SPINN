@@ -251,9 +251,9 @@ if __name__ == '__main__':
     tc, xc, yc = tc_mult, xc_mult, yc_mult
 
     if args.RBA:
-        lambda_i__c = jnp.arange(jnp.zeros((args.nt, args.nxy, args.nxy)))
-        lambda_i__w = jnp.arange(jnp.zeros((args.nt, args.nxy, args.nxy)))
-        lambda_i__rho = jnp.arange(jnp.zeros((args.nt, args.nxy, args.nxy)))
+        lambda_i__c = jnp.zeros((args.nt, args.nxy, args.nxy))
+        lambda_i__w = jnp.zeros((args.nt, args.nxy, args.nxy))
+        lambda_i__rho = jnp.zeros((args.nt, args.nxy, args.nxy))
     # start training
     for e in trange(1, args.epochs + 1):
         if e == 2:

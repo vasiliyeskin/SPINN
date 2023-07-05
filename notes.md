@@ -12,6 +12,7 @@ Best path to installation is
         pip install flax
         pip install tqdm
         pip install matplotlib
+        pip install yacs
 
 or
 

@@ -1,0 +1,40 @@
+dataset: Boussinesq_convection_flow_3d
+# data directory
+data_dir: './data/Boussinesq_convection_flow_3d'
+
+# model and equation
+model: 'spinn'
+equation: 'Boussinesq_convection_flow_3d'
+
+# input data settings
+nt: 32
+nxy: 128
+
+# training settings
+seed: 111
+lr: 1e-3
+epochs: 30000
+offset_num: 8
+offset_iter: 100
+lbda_c: 5000
+lbda_rho: 1000
+lbda_w: 1
+lbda_ic: 10000
+RBA: True
+
+# model settings
+mlp: modified_mlp
+n_layers: 3
+features: 128
+r: 128
+out_dim: 3
+pos_enc: 0
+
+# time marching
+marching_steps : 10
+step_idx: 0
+time_end: 2
+
+# log settings
+log_iter: 10000
+plot_iter: 10000

@@ -6,6 +6,7 @@ import time
 import jax
 import numpy as np
 import optax
+import yaml
 from jax import jvp
 from networks.hessian_vector_products import *
 from tqdm import trange
@@ -14,6 +15,9 @@ from utils.eval_functions import setup_eval_function
 from utils.training_utils import *
 from utils.visualizer import show_solution
 from utils.vorticity import velocity_to_vorticity_fwd
+
+from yacs.config import CfgNode as CN
+from configs.config import set_cfg
 
 
 # loss function for Boussinesq convection flow (SPINN)
@@ -209,50 +213,53 @@ def apply_model_spinn_RBA(apply_fn, params, tc, xc, yc, ti, xi, yi, w0_gt, u0_gt
 
 
 if __name__ == '__main__':
-    # config
-    parser = argparse.ArgumentParser(description='Training configurations')
+    # # config
+    # parser = argparse.ArgumentParser(description='Training configurations')
+    #
+    # # data directory
+    # parser.add_argument('--data_dir', type=str, default='./data/Boussinesq_convection_flow_3d', help='a directory to reference solution')
+    #
+    # # model and equation
+    # parser.add_argument('--model', type=str, default='spinn', choices=['spinn', 'pinn'], help='model name (pinn; spinn)')
+    # parser.add_argument('--equation', type=str, default='Boussinesq_convection_flow_3d', help='equation to solve')
+    #
+    # # input data settings
+    # parser.add_argument('--nt', type=int, default=None, help='the number of time points for time axis')
+    # parser.add_argument('--nxy', type=int, default=None, help='the number of points for each spatial axis')
+    #
+    # # training settings
+    # parser.add_argument('--seed', type=int, default=111, help='random seed')
+    # parser.add_argument('--lr', type=float, default=2e-3, help='learning rate')
+    # parser.add_argument('--epochs', type=int, default=100000, help='training epochs')
+    # parser.add_argument('--offset_num', type=int, default=8, help='the number of offsets in training data')
+    # parser.add_argument('--offset_iter', type=int, default=100, help='change offset every...')
+    # parser.add_argument('--lbda_c', type=int, default=5000, help='weighting factor for incompressible condition')
+    # parser.add_argument('--lbda_rho', type=int, default=1000, help='weighting factor for continuity condition')
+    # parser.add_argument('--lbda_w', type=int, default=1, help='weighting factor for turbulent condition')
+    # parser.add_argument('--lbda_ic', type=int, default=10000, help='weighting factor for initial condition')
+    # parser.add_argument('--RBA', type=bool, default=False, help='weighting from the paper https://arxiv.org/abs/2307.00379')
+    #
+    # # model settings
+    # parser.add_argument('--mlp', type=str, default='modified_mlp', choices=['mlp', 'modified_mlp'], help='type of mlp')
+    # parser.add_argument('--n_layers', type=int, default=3, help='the number of layer')
+    # parser.add_argument('--features', type=int, default=128, help='feature size of each layer')
+    # parser.add_argument('--r', type=int, default=128, help='rank of the approximated tensor')
+    # parser.add_argument('--out_dim', type=int, default=3, help='size of model output')
+    # parser.add_argument('--pos_enc', type=int, default=5, help='size of the positional encoding (zero if no encoding)')
+    #
+    # # time marching
+    # parser.add_argument('--marching_steps', type=int, default=10, help='step size for time marching')
+    # parser.add_argument('--step_idx', type=int, default=0, help='step index for time marching')
+    # parser.add_argument('--time_end', type=float, default=3.0, help='time of finish')
+    #
+    # # log settings
+    # parser.add_argument('--log_iter', type=int, default=1000, help='print log every...')
+    # parser.add_argument('--plot_iter', type=int, default=50000, help='plot result every...')
+    #
+    # args = parser.parse_args()
 
-    # data directory
-    parser.add_argument('--data_dir', type=str, default='./data/Boussinesq_convection_flow_3d', help='a directory to reference solution')
-
-    # model and equation
-    parser.add_argument('--model', type=str, default='spinn', choices=['spinn', 'pinn'], help='model name (pinn; spinn)')
-    parser.add_argument('--equation', type=str, default='Boussinesq_convection_flow_3d', help='equation to solve')
-    
-    # input data settings
-    parser.add_argument('--nt', type=int, default=None, help='the number of time points for time axis')
-    parser.add_argument('--nxy', type=int, default=None, help='the number of points for each spatial axis')
-
-    # training settings
-    parser.add_argument('--seed', type=int, default=111, help='random seed')
-    parser.add_argument('--lr', type=float, default=2e-3, help='learning rate')
-    parser.add_argument('--epochs', type=int, default=100000, help='training epochs')
-    parser.add_argument('--offset_num', type=int, default=8, help='the number of offsets in training data')
-    parser.add_argument('--offset_iter', type=int, default=100, help='change offset every...')
-    parser.add_argument('--lbda_c', type=int, default=5000, help='weighting factor for incompressible condition')
-    parser.add_argument('--lbda_rho', type=int, default=1000, help='weighting factor for continuity condition')
-    parser.add_argument('--lbda_w', type=int, default=1, help='weighting factor for turbulent condition')
-    parser.add_argument('--lbda_ic', type=int, default=10000, help='weighting factor for initial condition')
-    parser.add_argument('--RBA', type=bool, default=False, help='weighting from the paper https://arxiv.org/abs/2307.00379')
-
-    # model settings
-    parser.add_argument('--mlp', type=str, default='modified_mlp', choices=['mlp', 'modified_mlp'], help='type of mlp')
-    parser.add_argument('--n_layers', type=int, default=3, help='the number of layer')
-    parser.add_argument('--features', type=int, default=128, help='feature size of each layer')
-    parser.add_argument('--r', type=int, default=128, help='rank of the approximated tensor')
-    parser.add_argument('--out_dim', type=int, default=3, help='size of model output')
-    parser.add_argument('--pos_enc', type=int, default=5, help='size of the positional encoding (zero if no encoding)')
-
-    # time marching
-    parser.add_argument('--marching_steps', type=int, default=10, help='step size for time marching')
-    parser.add_argument('--step_idx', type=int, default=0, help='step index for time marching')
-    parser.add_argument('--time_end', type=float, default=3.0, help='time of finish')
-
-    # log settings
-    parser.add_argument('--log_iter', type=int, default=1000, help='print log every...')
-    parser.add_argument('--plot_iter', type=int, default=50000, help='plot result every...')
-
-    args = parser.parse_args()
+    args = set_cfg(CN())
+    args.merge_from_file('configs/boussinesq.yaml')
 
     # random key
     key = jax.random.PRNGKey(args.seed)

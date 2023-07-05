@@ -28,7 +28,7 @@ n_layers: 3
 features: 128
 r: 128
 out_dim: 3
-pos_enc: 0
+pos_enc: 5
 
 # time marching
 marching_steps : 10

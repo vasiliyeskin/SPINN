@@ -211,7 +211,7 @@ def _spinn_train_generator_klein_gordon3d(nc, k, key):
 #============== _spinn_train_generator_Boussinesq_convection_flow_3d =======#
 #---------------------------------- SPINN ----------------------------------#
 def _spinn_train_generator_Boussinesq_convection_flow_3d(time_end, nt, nxy, data_dir, result_dir, marching_steps, step_idx, offset_num, key):
-    keys = jax.random.split(key, 3)
+    # keys = jax.random.split(key, 3)
     # collocation points
     tc = jnp.expand_dims(jnp.linspace(start=0., stop=time_end, num=nt, endpoint=False), axis=1)
     xc = jnp.expand_dims(jnp.linspace(start=0., stop=2.*jnp.pi, num=nxy, endpoint=False), axis=1)

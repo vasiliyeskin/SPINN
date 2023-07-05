@@ -139,8 +139,10 @@ class SPINN3d(nn.Module):
         if self.pos_enc != 0:
             # positional encoding only to spatial coordinates
             freq = jnp.expand_dims(jnp.arange(1, self.pos_enc+1, 1), 0)
-            y = jnp.concatenate((jnp.ones((y.shape[0], 1)), jnp.sin(y@freq), jnp.cos(y@freq)), 1)
-            z = jnp.concatenate((jnp.ones((z.shape[0], 1)), jnp.sin(z@freq), jnp.cos(z@freq)), 1)
+            L_y = 2 * jnp.pi / (jnp.max(y) - jnp.min(y))
+            L_z = 2 * jnp.pi / (jnp.max(z) - jnp.min(z))
+            y = jnp.concatenate((jnp.ones((y.shape[0], 1)), jnp.sin(y@freq * L_y), jnp.cos(y@freq * L_y)), 1)
+            z = jnp.concatenate((jnp.ones((z.shape[0], 1)), jnp.sin(z@freq * L_z), jnp.cos(z@freq * L_z)), 1)
 
             # causal PINN version (also on time axis)
             #  freq_x = jnp.expand_dims(jnp.power(10.0, jnp.arange(0, 3)), 0)

@@ -227,6 +227,13 @@ def _boussinesq_convection_flow_3d(apply_fn, params, test_data, result_dir, e):
 
     nt, nx, ny = test_data[0].shape[0], test_data[1].shape[0], test_data[2].shape[0]
 
+    # n_lices = 10
+    # dt = nt // n_lices
+    # time_slices = [test_data[0][i*dt] for i in range(n_lices-1)]
+    # # print(time_slices)
+    #
+    # for t_i in time_slices:
+
     for t_i in [test_data[0][0], test_data[0][nt//2],test_data[0][-1]]:
         t = jnp.expand_dims(t_i, axis=1)
 
@@ -259,7 +266,7 @@ def _boussinesq_convection_flow_3d(apply_fn, params, test_data, result_dir, e):
         # fig.colorbar(im)
         ax1.set_xlabel('$x$')
         ax1.set_ylabel('$y$')
-        ax1.set_title(f'Reference $\\rho(t={jnp.round(t[0][0], 1):.2f}, x, y)$', fontsize=15)
+        ax1.set_title(f'Contours $\\rho(t={jnp.round(t[0][0], 1):.2f}, x, y); epoch {e}$', fontsize=15)
 
         cmap = sns.color_palette('icefire', as_cmap=True)
         # predicted solution

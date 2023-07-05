@@ -180,7 +180,9 @@ def apply_model_spinn_RBA(apply_fn, params, tc, xc, yc, ti, xi, yi, w0_gt, u0_gt
         # lambda_i__w = gamma * lambda_i__w + eta_star * abs_w / max_abs_w
         # lambda_i__rho = gamma * lambda_i__rho + eta_star * abs_rho / max_abs_rho
 
-        return jnp.mean((lambda_i__w * R_w)**2) + jnp.mean((lambda_i__c * R_c)**2) + jnp.mean((lambda_i__rho * R_rho)**2)
+        return jnp.mean((lambda_i__w * R_w)**2) +\
+               jnp.mean((lambda_i__c * R_c)**2) +\
+               jnp.mean((lambda_i__rho * R_rho)**2)
 
     def initial_loss(params, ti, xi, yi, w0_gt, u0_gt, v0_gt, rho0_gt):
         # use initial vorticity and velocity
@@ -317,7 +319,7 @@ if __name__ == '__main__':
         if args.RBA:
             ### approach from the paper https://arxiv.org/abs/2307.00379
 
-            gamma, eta_star = 0.99, 0.01
+            gamma, eta_star = 0.999, 0.01
             lambda_i__c, lambda_i__w, lambda_i__rho = get_lambdas(apply_fn,params, tc, xc, yc, gamma, eta_star, lambda_i__c, lambda_i__w, lambda_i__rho)
             loss, gradient = apply_model_spinn_RBA(apply_fn, params, tc, xc, yc, ti, xi, yi, w0, u0, v0, rho0, args.lbda_c, args.lbda_ic, args.lbda_rho, args.lbda_w, lambda_i__c, lambda_i__w, lambda_i__rho)
             #

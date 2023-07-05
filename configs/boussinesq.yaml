@@ -19,7 +19,7 @@ offset_iter: 100
 lbda_c: 5000
 lbda_rho: 1000
 lbda_w: 1
-lbda_ic: 10000
+lbda_ic: 100
 RBA: True
 
 # model settings
@@ -33,7 +33,7 @@ pos_enc: 0
 # time marching
 marching_steps : 10
 step_idx: 0
-time_end: 2
+time_end: 2.0
 
 # log settings
 log_iter: 10000

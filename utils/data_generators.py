@@ -211,64 +211,58 @@ def _spinn_train_generator_klein_gordon3d(nc, k, key):
 #============== _spinn_train_generator_Boussinesq_convection_flow_3d =======#
 #---------------------------------- SPINN ----------------------------------#
 def _spinn_train_generator_Boussinesq_convection_flow_3d(time_end, nt, nxy, data_dir, result_dir, marching_steps, step_idx, offset_num, key):
-    # keys = jax.random.split(key, 3)
+    keys = jax.random.split(key, 2)
     # collocation points
     tc = jnp.expand_dims(jnp.linspace(start=0., stop=time_end, num=nt, endpoint=False), axis=1)
     xc = jnp.expand_dims(jnp.linspace(start=0., stop=2.*jnp.pi, num=nxy, endpoint=False), axis=1)
     yc = jnp.expand_dims(jnp.linspace(start=0., stop=2.*jnp.pi, num=nxy, endpoint=False), axis=1)
 
-    # initial points
-    ti = jnp.zeros((1, 1))
     xi = xc
     yi = yc
-    ti_mesh, xi_mesh, yi_mesh = jnp.meshgrid(ti.ravel(), xi.ravel(), yi.ravel(), indexing='ij')
-    w0, u0, v0, rho0 = Boussinesq_convection_flow_3d__initialvalue(ti_mesh, xi_mesh, yi_mesh)
+    # initial points
+    if step_idx == 0:
+        ti = jnp.zeros((1, 1))
+        ti_mesh, xi_mesh, yi_mesh = jnp.meshgrid(ti.ravel(), xi.ravel(), yi.ravel(), indexing='ij')
+        w0, u0, v0, rho0 = Boussinesq_convection_flow_3d__initialvalue(ti_mesh, xi_mesh, yi_mesh)
+    else:
+        # get data from previous time window prediction
+        w0_loaded = scipy.io.loadmat(os.path.join(result_dir, '..', f'IC_pred/w0_{step_idx}.mat'))
+        ti = w0_loaded['t']
+        w0 = w0_loaded['w0']
+        u0 = w0_loaded['u0']
+        v0 = w0_loaded['v0']
+        rho0 = w0_loaded['rho0']
 
-    return tc, xc, yc, ti, xi, yi, w0, u0, v0, rho0
-    # if step_idx == 0:
-    #     # get data from ground truth
-    #     w0, u0, v0, rho0 = w0, u0, v0, rho0
-    # else:
-    #     # get data from previous time window prediction
-    #     w0, u0, v0, rho0 = scipy.io.loadmat(os.path.join(result_dir, '..', f'IC_pred/w0_{step_idx}.mat'))
-    #     ti = w0['t']
-    #
-    #
-    # # collocation points
-    # tc = jnp.expand_dims(jnp.linspace(start=0., stop=tc[0][-1], num=nt, endpoint=False), axis=1)
-    # xc = jnp.expand_dims(jnp.linspace(start=0., stop=2.*jnp.pi, num=nxy, endpoint=False), axis=1)
-    # yc = jnp.expand_dims(jnp.linspace(start=0., stop=2.*jnp.pi, num=nxy, endpoint=False), axis=1)
-    #
-    # if marching_steps != 0:
-    #     # when using time marching
-    #     Dt = tc[0][-1] / marching_steps  # interval of a single time window
-    #     # generate temporal coordinates within current time window
-    #     if step_idx == 0:
-    #         tc = jnp.expand_dims(jnp.linspace(start=0., stop=Dt*(step_idx+1), num=nt, endpoint=False), axis=1)
-    #     else:
-    #         tc = jnp.expand_dims(jnp.linspace(start=w0['t'][0][0], stop=Dt*(step_idx+1), num=nt, endpoint=False), axis=1)
-    #
-    # # for stacking multi-input grid
-    # tc_mult = jnp.expand_dims(tc, axis=0)
-    # xc_mult = jnp.expand_dims(xc, axis=0)
-    # yc_mult = jnp.expand_dims(yc, axis=0)
-    #
-    # # maximum value of offsets
-    # dt = tc[1][0] - tc[0][0]
-    # dxy = xc[1][0] - xc[0][0]
-    #
-    # # create offset values (zero is included by default)
-    # offset_t = jax.random.uniform(keys[0], (offset_num-1,), minval=0., maxval=dt)
-    # offset_xy = jax.random.uniform(keys[1], (offset_num-1,), minval=0., maxval=dxy)
-    #
-    # # make multi-grid
-    # for i in range(offset_num-1):
-    #     tc_mult = jnp.concatenate((tc_mult, jnp.expand_dims(tc + offset_t[i], axis= 0)), axis=0)
-    #     xc_mult = jnp.concatenate((xc_mult, jnp.expand_dims(xc + offset_xy[i], axis=0)), axis=0)
-    #     yc_mult = jnp.concatenate((yc_mult, jnp.expand_dims(yc + offset_xy[i], axis=0)), axis=0)
-    #
-    # return tc_mult, xc_mult, yc_mult, ti, xi, yi, w0, u0, v0, rho0
 
+    if marching_steps != 0:
+        # when using time marching
+        Dt = time_end / marching_steps  # interval of a single time window
+        # generate temporal coordinates within current time window
+        if step_idx == 0:
+            tc = jnp.expand_dims(jnp.linspace(start=0., stop=Dt * (step_idx+1), num=nt, endpoint=False), axis=1)
+        else:
+            tc = jnp.expand_dims(jnp.linspace(start=Dt * step_idx, stop=Dt * (step_idx+1), num=nt, endpoint=False), axis=1)
+
+    # for stacking multi-input grid
+    tc_mult = jnp.expand_dims(tc, axis=0)
+    xc_mult = jnp.expand_dims(xc, axis=0)
+    yc_mult = jnp.expand_dims(yc, axis=0)
+
+    # maximum value of offsets
+    dt = tc[1][0] - tc[0][0]
+    dxy = xc[1][0] - xc[0][0]
+
+    # create offset values (zero is included by default)
+    offset_t = jax.random.uniform(keys[0], (offset_num-1,), minval=0., maxval=dt)
+    offset_xy = jax.random.uniform(keys[1], (offset_num-1,), minval=0., maxval=dxy)
+
+    # make multi-grid
+    for i in range(offset_num-1):
+        tc_mult = jnp.concatenate((tc_mult, jnp.expand_dims(tc + offset_t[i], axis= 0)), axis=0)
+        xc_mult = jnp.concatenate((xc_mult, jnp.expand_dims(xc + offset_xy[i], axis=0)), axis=0)
+        yc_mult = jnp.concatenate((yc_mult, jnp.expand_dims(yc + offset_xy[i], axis=0)), axis=0)
+
+    return tc_mult, xc_mult, yc_mult, ti, xi, yi, w0, u0, v0, rho0
 
 #======================== Klein-Gordon equation 4-d ========================#
 #---------------------------------- PINN -----------------------------------#
@@ -595,9 +589,8 @@ def _test_generator_klein_gordon3d(model, nc_test, k):
 
 
 #----------------------- Boussinesq convection flow 3-d -------------------------#
-@partial(jax.jit, static_argnums=(0, 1, 2,))
-def _test_generator_Boussinesq_convection_flow_3d(time_end, model, nc_test):
-# def _test_generator_Boussinesq_convection_flow_3d(model, nc_test, data_dir, result_dir, marching_steps, step_idx):
+# def _test_generator_Boussinesq_convection_flow_3d(time_end, model, nc_test):
+def _test_generator_Boussinesq_convection_flow_3d(time_end, model, nc_test, data_dir, result_dir, marching_steps, step_idx):
     t = jnp.linspace(start=0., stop=time_end, num=nc_test)
     x = jnp.linspace(0, 2*jnp.pi, 128)
     y = jnp.linspace(0, 2*jnp.pi, 128)
@@ -605,22 +598,13 @@ def _test_generator_Boussinesq_convection_flow_3d(time_end, model, nc_test):
     x = jax.lax.stop_gradient(x)
     y = jax.lax.stop_gradient(y)
 
-    # # get data within current time window
-    # if marching_steps != 0:
-    #     Dt = t[-1][0] / marching_steps  # interval of time window
-    #     i = 0
-    #     while Dt*(step_idx+1) > t[i][0]:
-    #         i+=1
-    #     t = t[:i]
-    #
-    # # get data within current time window
-    # if step_idx > 0:
-    #     w0_pred = scipy.io.loadmat(os.path.join(result_dir, '..', f'IC_pred/w0_{step_idx}.mat'))
-    #     i = 0
-    #     while t[i] != w0_pred['t'][0][0]:
-    #         i+=1
-    #     t = t[i:]
-
+    # get data within current time window
+    if marching_steps != 0:
+        Dt = time_end / marching_steps  # interval of time window
+        i = 0
+        while Dt*(step_idx+1) > t[i]:
+            i+=1
+        t = t[:i+1]
 
     tm, xm, ym = jnp.meshgrid(
         t, x, y, indexing='ij'
@@ -629,7 +613,23 @@ def _test_generator_Boussinesq_convection_flow_3d(time_end, model, nc_test):
     x = x.reshape(-1, 1)
     y = y.reshape(-1, 1)
 
-    return t, x, y, tm*0, tm*0, tm*0, tm*0
+
+    # get data within current time window
+    if step_idx > 0:
+        w0_pred = scipy.io.loadmat(os.path.join(result_dir, '..', f'IC_pred/w0_{step_idx}.mat'))
+        i = 0
+        while t[i] != w0_pred['t'][0][0]:
+            i+=1
+        t = t[i:]
+
+        w0 = w0_pred['w0']
+        u0 = w0_pred['u0']
+        v0 = w0_pred['v0']
+        rho0 = w0_pred['rho0']
+    else:
+        w0, u0, v0, rho0 =  tm*0, tm*0, tm*0, tm*0
+
+    return t, x, y, w0, u0, v0, rho0
 
 
 #----------------------- Klein-Gordon equation 4-d -------------------------#
@@ -757,7 +757,7 @@ def generate_test_data(args, result_dir):
 
     elif eqn == 'Boussinesq_convection_flow_3d':
         data = _test_generator_Boussinesq_convection_flow_3d(
-            args.time_end, args.model, 10
+            args.time_end, args.model, 10, args.data_dir, result_dir, args.marching_steps, args.step_idx
         )
     elif eqn == 'navier_stokes4d':
         data = _test_generator_navier_stokes4d(

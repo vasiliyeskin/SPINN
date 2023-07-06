@@ -306,26 +306,27 @@ if __name__ == '__main__':
     
     # get data
     tc_mult, xc_mult, yc_mult, ti, xi, yi, w0, u0, v0, rho0 = train_data
-    tc, xc, yc = tc_mult, xc_mult, yc_mult
+    # tc, xc, yc = tc_mult, xc_mult, yc_mult
+    tc, xc, yc = tc_mult[0], xc_mult[0], yc_mult[0]
 
     if args.RBA:
         lambda_i__c = jnp.zeros((args.nt, args.nxy, args.nxy))
         lambda_i__w = jnp.zeros((args.nt, args.nxy, args.nxy))
         lambda_i__rho = jnp.zeros((args.nt, args.nxy, args.nxy))
+
     # start training
     for e in trange(1, args.epochs + 1):
         if e == 2:
             # exclude compiling time
             start = time.time()
 
-        # if e % args.offset_iter == 0:
-        #     # change input
-        #     offset_idx = (e // args.offset_iter) % args.offset_num
-        #     tc, xc, yc = tc_mult[offset_idx], xc_mult[offset_idx], yc_mult[offset_idx]
+        if e % args.offset_iter == 0:
+            # change input
+            offset_idx = (e // args.offset_iter) % args.offset_num
+            tc, xc, yc = tc_mult[offset_idx], xc_mult[offset_idx], yc_mult[offset_idx]
 
         if args.RBA:
             ### approach from the paper https://arxiv.org/abs/2307.00379
-
             gamma, eta_star = 0.999, 0.01
             lambda_i__c, lambda_i__w, lambda_i__rho = get_lambdas(apply_fn,params, tc, xc, yc, gamma, eta_star, lambda_i__c, lambda_i__w, lambda_i__rho)
             loss, gradient = apply_model_spinn_RBA(apply_fn, params, tc, xc, yc, ti, xi, yi, w0, u0, v0, rho0, args.lbda_c, args.lbda_ic, args.lbda_rho, args.lbda_w, lambda_i__c, lambda_i__w, lambda_i__rho)
@@ -335,12 +336,12 @@ if __name__ == '__main__':
             loss, gradient = apply_model_spinn(apply_fn, params, tc, xc, yc, ti, xi, yi, w0, u0, v0, rho0, args.lbda_c, args.lbda_ic, args.lbda_rho, args.lbda_w)
         params, state = update_model(optim, gradient, params, state)
 
-        # if e % 100 == 0 and e > args.epochs*0.7:
-        #     if loss < best:
-        #         best = loss
-        #         best_error = eval_fn(apply_fn, params, *test_data)
-        #         # save next IC prediction for time marching
-        #         save_next_IC(root_dir, name, apply_fn,params, test_data, args.step_idx, e)
+        if e % 100 == 0 and e > args.epochs*0.7:
+            if loss < best:
+                best = loss
+                best_error = eval_fn(apply_fn, params, *test_data)
+                # save next IC prediction for time marching
+                save_next_IC_for_Boussinesq(root_dir, name, apply_fn,params, test_data, args.step_idx, e)
 
         # log
         if e % args.log_iter == 0:

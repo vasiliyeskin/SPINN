@@ -48,7 +48,7 @@ def Boussinesq_convection_flow_3d__initialvalue(t, x, y):
     rho2 = jnp.where(R2 < R3, jnp.exp(1 - R3 ** 2 / (R3 ** 2 - R2 ** 2)), 0.)
     # rho2 = jnp.exp(1 - R3 ** 2 / (R3 ** 2 - R2 ** 2)) * ((jnp.tanh(10 * (R3 - R2)) + 1) / 2.0)
 
-    R = 50 * rho1 * rho2 * (1 - rho1)
+    R = 50 * rho1 * rho2 * (1. - rho1)
 
     # R4_2 = (y - jnp.pi / 2) ** 2 + (x - jnp.pi) ** 2
     # R = jnp.where(jnp.abs(R4_2) < jnp.pi ** 2 / 4, 15., 0.)

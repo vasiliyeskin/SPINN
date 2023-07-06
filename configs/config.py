@@ -22,7 +22,7 @@ def set_cfg(cfg):
     cfg.lbda_c = 5000
     cfg.lbda_rho = 1000
     cfg.lbda_w = 1
-    cfg.lbda_ic = 10000
+    cfg.lbda_ic = 10000.0
     cfg.RBA = True
 
     # model settings

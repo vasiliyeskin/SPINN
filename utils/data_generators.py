@@ -233,7 +233,6 @@ def _spinn_train_generator_Boussinesq_convection_flow_3d(time_end, nt, nxy, data
         v0 = w0_loaded['v0']
         rho0 = w0_loaded['rho0']
 
-
     if marching_steps != 0:
         # when using time marching
         Dt = time_end / marching_steps  # interval of a single time window

@@ -234,7 +234,8 @@ def _boussinesq_convection_flow_3d(apply_fn, params, test_data, result_dir, e):
     #
     # for t_i in time_slices:
 
-    for t_i in [test_data[0][0], test_data[0][nt//2],test_data[0][-1]]:
+    # for t_i in [test_data[0][0], test_data[0][nt//2],test_data[0][-1]]:
+    for t_i in [test_data[0][0], test_data[0][nt//3], test_data[0][2 * nt//3],test_data[0][-1]]:
         t = jnp.expand_dims(t_i, axis=1)
 
         # w_pred = velocity_to_vorticity_fwd(apply_fn, params, t, test_data[1], test_data[2])
@@ -254,7 +255,7 @@ def _boussinesq_convection_flow_3d(apply_fn, params, test_data, result_dir, e):
         x, y = jnp.meshgrid(x.ravel(), y.ravel(), indexing='ij')
 
         # reference solution
-        ax1 = fig.add_subplot(131)
+        ax1 = fig.add_subplot(131, aspect='equal')
         # im = ax1.pcolor(x, y, rho0_ref, cmap='RdBu', vmin=jnp.min(rho0_ref), vmax=jnp.max(rho0_ref))
         levels = jnp.linspace(0.1, 5, 10)
         origin = 'lower'
@@ -266,11 +267,11 @@ def _boussinesq_convection_flow_3d(apply_fn, params, test_data, result_dir, e):
         # fig.colorbar(im)
         ax1.set_xlabel('$x$')
         ax1.set_ylabel('$y$')
-        ax1.set_title(f'Contours $\\rho(t={jnp.round(t[0][0], 1):.2f}, x, y); epoch {e}$', fontsize=15)
+        ax1.set_title(f'Cont.s $\\rho(t={jnp.round(t[0][0], 1):.2f}, x, y); ep. {e:.2f}$', fontsize=15)
 
         cmap = sns.color_palette('icefire', as_cmap=True)
         # predicted solution
-        ax1 = fig.add_subplot(132)
+        ax1 = fig.add_subplot(132, aspect='equal')
         im = ax1.pcolor(x, y, rho0_pred[0], cmap='rainbow', vmin=jnp.min(rho0_pred[0]), vmax=jnp.max(rho0_pred[0]))
         fig.colorbar(im)
         ax1.set_xlabel('$x$')
@@ -279,7 +280,7 @@ def _boussinesq_convection_flow_3d(apply_fn, params, test_data, result_dir, e):
 
         # absolute error
         error = jnp.abs(rho0_ref - rho0_pred[0])
-        ax1 = fig.add_subplot(133)
+        ax1 = fig.add_subplot(133, aspect='equal')
         im = ax1.pcolor(x, y, error, cmap='rainbow', vmin=jnp.min(error), vmax=jnp.max(error))
         ax1.set_xlabel('$x$')
         ax1.set_ylabel('$y$')

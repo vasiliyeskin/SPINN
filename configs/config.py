@@ -19,11 +19,13 @@ def set_cfg(cfg):
     cfg.epochs = 300000
     cfg.offset_num = 8
     cfg.offset_iter = 100
-    cfg.lbda_c = 5000
-    cfg.lbda_rho = 1000
-    cfg.lbda_w = 1
+    cfg.lbda_c = 5000.0
+    cfg.lbda_rho = 1000.0
+    cfg.lbda_w = 1.0
     cfg.lbda_ic = 10000.0
     cfg.RBA = True
+    cfg.gamma = 0.999
+    cfg.eta_star = 0.01
 
     # model settings
     cfg.mlp = 'modified_mlp'

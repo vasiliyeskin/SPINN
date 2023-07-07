@@ -175,6 +175,18 @@ class SPINN3d(nn.Module):
             xy += [jnp.einsum('fx, fy->fxy', outputs[0][self.r*i:self.r*(i+1)], outputs[1][self.r*i:self.r*(i+1)])]
             pred += [jnp.einsum('fxy, fz->xyz', xy[i], outputs[-1][self.r*i:self.r*(i+1)])]
 
+        # for i in range(self.out_dim):
+        #     xx = outputs[0][self.r*i:self.r*(i+1)]
+        #     xx = jnp.repeat(xx[:, :, jnp.newaxis], outputs[1].shape[1], axis=2)
+        #     xx = jnp.repeat(xx[:, :,  :, jnp.newaxis], outputs[2].shape[1], axis=3)
+        #     yy = outputs[1][self.r*i:self.r*(i+1)]
+        #     yy = jnp.repeat(yy[:, jnp.newaxis, :], outputs[0].shape[1], axis=1)
+        #     yy = jnp.repeat(yy[:, :,  :, jnp.newaxis], outputs[2].shape[1], axis=3)
+        #     zz = outputs[-1][self.r*i:self.r*(i+1)]
+        #     zz = jnp.repeat(zz[:, jnp.newaxis, :], outputs[0].shape[1], axis=1)
+        #     zz = jnp.repeat(zz[:, :, jnp.newaxis,  :], outputs[1].shape[1], axis=2)
+        #     pred += [jnp.sum(xx, axis=0) * jnp.sum(yy, axis=0) * jnp.sum(zz, axis=0)]
+
         if len(pred) == 1:
             # 1-dimensional output
             return pred[0]

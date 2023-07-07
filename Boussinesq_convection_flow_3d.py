@@ -214,7 +214,7 @@ def apply_model_spinn_RBA(apply_fn, params, tc, xc, yc, ti, xi, yi, w0_gt, u0_gt
 
 if __name__ == '__main__':
     # # config
-    # parser = argparse.ArgumentParser(description='Training configurations')
+    parser = argparse.ArgumentParser(description='Training configurations')
     #
     # # data directory
     # parser.add_argument('--data_dir', type=str, default='./data/Boussinesq_convection_flow_3d', help='a directory to reference solution')
@@ -249,17 +249,20 @@ if __name__ == '__main__':
     #
     # # time marching
     # parser.add_argument('--marching_steps', type=int, default=10, help='step size for time marching')
-    # parser.add_argument('--step_idx', type=int, default=0, help='step index for time marching')
+    parser.add_argument('--step_idx', type=int, default=-1, help='step index for time marching')
     # parser.add_argument('--time_end', type=float, default=3.0, help='time of finish')
     #
     # # log settings
     # parser.add_argument('--log_iter', type=int, default=1000, help='print log every...')
     # parser.add_argument('--plot_iter', type=int, default=50000, help='plot result every...')
     #
-    # args = parser.parse_args()
+    args_pars = parser.parse_args()
 
     args = set_cfg(CN())
     args.merge_from_file('configs/boussinesq.yaml')
+
+    if args_pars.step_idx != -1:
+        args.step_idx = args_pars.step_idx
 
     # random key
     key = jax.random.PRNGKey(args.seed)
@@ -327,7 +330,7 @@ if __name__ == '__main__':
 
         if args.RBA:
             ### approach from the paper https://arxiv.org/abs/2307.00379
-            gamma, eta_star = 0.999, 0.01
+            gamma, eta_star = args.gamma, args.eta_star
             lambda_i__c, lambda_i__w, lambda_i__rho = get_lambdas(apply_fn,params, tc, xc, yc, gamma, eta_star, lambda_i__c, lambda_i__w, lambda_i__rho)
             loss, gradient = apply_model_spinn_RBA(apply_fn, params, tc, xc, yc, ti, xi, yi, w0, u0, v0, rho0, args.lbda_c, args.lbda_ic, args.lbda_rho, args.lbda_w, lambda_i__c, lambda_i__w, lambda_i__rho)
             #

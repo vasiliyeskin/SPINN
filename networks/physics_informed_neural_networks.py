@@ -170,10 +170,16 @@ class SPINN3d(nn.Module):
                     H = (jnp.ones_like(Z)-Z)*U + Z*V
                 H = nn.Dense(self.r*self.out_dim, kernel_init=init)(H)
                 outputs += [jnp.transpose(H, (1, 0))]
-        
+
         for i in range(self.out_dim):
-            xy += [jnp.einsum('fx, fy->fxy', outputs[0][self.r*i:self.r*(i+1)], outputs[1][self.r*i:self.r*(i+1)])]
-            pred += [jnp.einsum('fxy, fz->xyz', xy[i], outputs[-1][self.r*i:self.r*(i+1)])]
+
+            maxr = self.r + self.r*i
+            # maxr = min([self.r, self.r * 50 // 100]) + self.r * i
+
+            xy += [jnp.einsum('fx, fy->fxy',
+                              outputs[0][self.r*i:maxr],
+                              outputs[1][self.r*i:maxr])]
+            pred += [jnp.einsum('fxy, fz->xyz', xy[i], outputs[-1][self.r*i:maxr])]
 
         # for i in range(self.out_dim):
         #     xx = outputs[0][self.r*i:self.r*(i+1)]

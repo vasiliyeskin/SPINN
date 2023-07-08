@@ -48,7 +48,7 @@ def _diffusion3d(args, apply_fn, params, test_data, result_dir, e, resol):
         ax1.set_xlabel('x')
         ax1.set_ylabel('y')
         ax1.set_zlabel('u')
-        ax1.set_title(f'Reference $u(x, y)$ at $t={tt*(1/(nt-1)):.1f}$', fontsize=15)
+        ax1.set_title(f'Reference $u(x, y)$ at $t={tt*(1/(nt-1)):.1f}$', fontsize=6)
         ax1.set_zlim(jnp.min(u_ref), jnp.max(u_ref))
 
         # predicted solution
@@ -57,7 +57,7 @@ def _diffusion3d(args, apply_fn, params, test_data, result_dir, e, resol):
         ax2.set_xlabel('x')
         ax2.set_ylabel('y')
         ax2.set_zlabel('u')
-        ax2.set_title(f'Predicted $u(x, y)$ at $t={tt*(1/(nt-1)):.1f}$', fontsize=15)
+        ax2.set_title(f'Predicted $u(x, y)$ at $t={tt*(1/(nt-1)):.1f}$', fontsize=6)
         ax2.set_zlim(jnp.min(u_ref), jnp.max(u_ref))
 
         plt.savefig(os.path.join(result_dir, f'vis/{e:05d}/pred_{tt*(1/(nt-1)):.1f}.png'))
@@ -96,7 +96,7 @@ def _helmholtz3d(args, apply_fn, params, result_dir, e, resol):
     ax1.set_xlabel('x')
     ax1.set_ylabel('y')
     ax1.set_zlabel('z')
-    ax1.set_title(f'Reference $u(x, y, z)$', fontsize=15)
+    ax1.set_title(f'Reference $u(x, y, z)$', fontsize=6)
 
     # predicted solution
     ax2 = fig.add_subplot(132, projection='3d')
@@ -104,7 +104,7 @@ def _helmholtz3d(args, apply_fn, params, result_dir, e, resol):
     ax2.set_xlabel('x')
     ax2.set_ylabel('y')
     ax2.set_zlabel('z')
-    ax2.set_title(f'Predicted $u(x, y, z)$', fontsize=15)
+    ax2.set_title(f'Predicted $u(x, y, z)$', fontsize=6)
 
     # absolute error
     ax3 = fig.add_subplot(133, projection='3d')
@@ -112,7 +112,7 @@ def _helmholtz3d(args, apply_fn, params, result_dir, e, resol):
     ax3.set_xlabel('x')
     ax3.set_ylabel('y')
     ax3.set_zlabel('z')
-    ax3.set_title(f'Absolute error', fontsize=15)
+    ax3.set_title(f'Absolute error', fontsize=6)
 
     cbar_ax = fig.add_axes([0.95, 0.3, 0.01, 0.4])
     fig.colorbar(im, cax=cbar_ax)
@@ -153,7 +153,7 @@ def _klein_gordon3d(args, apply_fn, params, result_dir, e, resol):
     ax1.set_xlabel('t')
     ax1.set_ylabel('x')
     ax1.set_zlabel('y')
-    ax1.set_title(f'Reference $u(t, x, y)$', fontsize=15)
+    ax1.set_title(f'Reference $u(t, x, y)$', fontsize=6)
 
     # predicted solution
     ax2 = fig.add_subplot(132, projection='3d')
@@ -161,7 +161,7 @@ def _klein_gordon3d(args, apply_fn, params, result_dir, e, resol):
     ax2.set_xlabel('t')
     ax2.set_ylabel('x')
     ax2.set_zlabel('y')
-    ax2.set_title(f'Predicted $u(t, x, y)$', fontsize=15)
+    ax2.set_title(f'Predicted $u(t, x, y)$', fontsize=6)
 
     # absolute error
     ax3 = fig.add_subplot(133, projection='3d')
@@ -169,7 +169,7 @@ def _klein_gordon3d(args, apply_fn, params, result_dir, e, resol):
     ax3.set_xlabel('t')
     ax3.set_ylabel('x')
     ax3.set_zlabel('y')
-    ax3.set_title(f'Absolute error', fontsize=15)
+    ax3.set_title(f'Absolute error', fontsize=6)
 
     cbar_ax = fig.add_axes([0.95, 0.3, 0.01, 0.4])
     fig.colorbar(im, cax=cbar_ax)
@@ -199,21 +199,21 @@ def _navier_stokes3d(apply_fn, params, test_data, result_dir, e):
     im = ax1.imshow(w_ref, cmap='jet', extent=[0, 2*jnp.pi, 0, 2*jnp.pi], vmin=jnp.min(w_ref), vmax=jnp.max(w_ref))
     ax1.set_xlabel('$x$')
     ax1.set_ylabel('$y$')
-    ax1.set_title(f'Reference $\omega(t={jnp.round(t[0][0], 1):.2f}, x, y)$', fontsize=15)
+    ax1.set_title(f'Reference $\omega(t={jnp.round(t[0][0], 1):.2f}, x, y)$', fontsize=6)
 
     # predicted solution
     ax1 = fig.add_subplot(132)
     im = ax1.imshow(w_pred[0], cmap='jet', extent=[0, 2*jnp.pi, 0, 2*jnp.pi], vmin=jnp.min(w_ref), vmax=jnp.max(w_ref))
     ax1.set_xlabel('$x$')
     ax1.set_ylabel('$y$')
-    ax1.set_title(f'Predicted $\omega(t={jnp.round(t[0][0], 1):.2f}, x, y)$', fontsize=15)
+    ax1.set_title(f'Predicted $\omega(t={jnp.round(t[0][0], 1):.2f}, x, y)$', fontsize=6)
 
     # absolute error
     ax1 = fig.add_subplot(133)
     im = ax1.imshow(jnp.abs(w_ref - w_pred[0]), cmap='jet', extent=[0, 2*jnp.pi, 0, 2*jnp.pi], vmin=jnp.min(w_ref), vmax=jnp.max(w_ref))
     ax1.set_xlabel('$x$')
     ax1.set_ylabel('$y$')
-    ax1.set_title(f'Asolute error', fontsize=15)
+    ax1.set_title(f'Asolute error', fontsize=6)
 
     cbar_ax = fig.add_axes([0.95, 0.3, 0.01, 0.4])
     fig.colorbar(im, cax=cbar_ax)
@@ -235,8 +235,11 @@ def _boussinesq_convection_flow_3d(apply_fn, params, test_data, result_dir, e):
     # for t_i in time_slices:
 
     # for t_i in [test_data[0][0], test_data[0][nt//2],test_data[0][-1]]:
+    i=0
+    t = []
+    rho_pred, rho0_ref = [], []
     for t_i in [test_data[0][0], test_data[0][nt//3], test_data[0][2 * nt//3],test_data[0][-1]]:
-        t = jnp.expand_dims(t_i, axis=1)
+        t += [jnp.expand_dims(t_i, axis=1)]
 
         # w_pred = velocity_to_vorticity_fwd(apply_fn, params, t, test_data[1], test_data[2])
         # w_pred = w_pred.reshape(-1, nx, ny)
@@ -244,53 +247,139 @@ def _boussinesq_convection_flow_3d(apply_fn, params, test_data, result_dir, e):
 
         x = test_data[1]
         y = test_data[2]
-        u0, v0, rho0_pred = apply_fn(params, t, x, y)
-        rho0_pred = rho0_pred.reshape(-1, nx, ny)
-        rho0_ref = test_data[-1][-1]
+        u0, v0, rho0_pred = apply_fn(params, t[i], x, y)
+        rho_pred += [rho0_pred.reshape(-1, nx, ny)]
+        rho0_ref += [test_data[-1][-1]]
 
-        os.makedirs(os.path.join(result_dir, f'vis/{e:05d}'), exist_ok=True)
+        i += 1
 
-        fig = plt.figure(figsize=(14, 5))
 
-        x, y = jnp.meshgrid(x.ravel(), y.ravel(), indexing='ij')
 
-        # reference solution
-        ax1 = fig.add_subplot(131, aspect='equal')
-        # im = ax1.pcolor(x, y, rho0_ref, cmap='RdBu', vmin=jnp.min(rho0_ref), vmax=jnp.max(rho0_ref))
-        levels = jnp.linspace(0.1, 5, 10)
-        origin = 'lower'
-        CS = ax1.contourf(x, y, rho0_pred[0], levels,
-                           origin=origin,
-                           extend='both')
-        CS2 = ax1.contour(CS, levels=CS.levels[::2], colors='r', origin=origin)
-        ax1.clabel(CS2, fmt='%2.1f', colors='w', fontsize=11)
-        # fig.colorbar(im)
-        ax1.set_xlabel('$x$')
-        ax1.set_ylabel('$y$')
-        ax1.set_title(f'Cont.s $\\rho(t={jnp.round(t[0][0], 1):.2f}, x, y); ep. {e:.2f}$', fontsize=15)
+    os.makedirs(os.path.join(result_dir, f'vis/{e:05d}'), exist_ok=True)
 
-        cmap = sns.color_palette('icefire', as_cmap=True)
-        # predicted solution
-        ax1 = fig.add_subplot(132, aspect='equal')
-        im = ax1.pcolor(x, y, rho0_pred[0], cmap='rainbow', vmin=jnp.min(rho0_pred[0]), vmax=jnp.max(rho0_pred[0]))
-        fig.colorbar(im)
-        ax1.set_xlabel('$x$')
-        ax1.set_ylabel('$y$')
-        ax1.set_title(f'Predicted $\\rho(t={jnp.round(t[0][0], 1):.2f}, x, y)$', fontsize=15)
+    # fig = plt.figure(figsize=(18, 9))
+    fig, axs = plt.subplots(2, 4)
 
-        # absolute error
-        error = jnp.abs(rho0_ref - rho0_pred[0])
-        ax1 = fig.add_subplot(133, aspect='equal')
-        im = ax1.pcolor(x, y, error, cmap='rainbow', vmin=jnp.min(error), vmax=jnp.max(error))
-        ax1.set_xlabel('$x$')
-        ax1.set_ylabel('$y$')
-        ax1.set_title(f'Asolute error', fontsize=15)
+    x, y = jnp.meshgrid(x.ravel(), y.ravel(), indexing='ij')
 
-        # cbar_ax = fig.add_axes([0.95, 0.3, 0.01, 0.4])
-        fig.colorbar(im)
-        plt.savefig(os.path.join(result_dir, f'vis/{e:05d}/pred_t{t[0][0]}.png'))
-        plt.show()
-        plt.close()
+    # reference solution
+    # ax1 = fig.add_subplot(141, aspect='equal')
+    # im = ax1.pcolor(x, y, rho0_ref, cmap='RdBu', vmin=jnp.min(rho0_ref), vmax=jnp.max(rho0_ref))
+    levels = jnp.linspace(0.1, 5, 10)
+    origin = 'lower'
+    CS = axs[0, 0].contourf(x, y, rho_pred[0][0], levels,
+                       origin=origin,
+                       extend='both')
+    CS2 = axs[0, 0].contour(CS, levels=CS.levels[::2], colors='r', origin=origin)
+    axs[0, 0].clabel(CS2, fmt='%2.1f', colors='w', fontsize=11)
+    # fig.colorbar(im)
+    axs[0, 0].set_xlabel('$x$')
+    axs[0, 0].set_ylabel('$y$')
+    axs[0, 0].set_box_aspect(1)
+    axs[0, 0].set_title(f'Cont.s $\\rho(t={jnp.round(t[0][0][0], 1):.2f}, x, y); ep. {e:.2f}$', fontsize=6)
+
+    cmap = sns.color_palette('icefire', as_cmap=True)
+    # predicted solution
+    # ax1 = fig.add_subplot(241, aspect='equal')
+    im = axs[1, 0].pcolor(x, y, rho_pred[0][0], cmap='rainbow', vmin=jnp.min(rho0_pred[0]), vmax=jnp.max(rho0_pred[0]))
+    fig.colorbar(im,fraction=0.046, pad=0.04)
+    axs[1, 0].set_xlabel('$x$')
+    axs[1, 0].set_ylabel('$y$')
+    axs[1, 0].set_box_aspect(1)
+    axs[1, 0].set_title(f'Predicted $\\rho(t={jnp.round(t[0][0][0], 1):.2f}, x, y)$', fontsize=6)
+
+    # reference solution
+    # ax1 = fig.add_subplot(142, aspect='equal')
+    # im = ax1.pcolor(x, y, rho0_ref, cmap='RdBu', vmin=jnp.min(rho0_ref), vmax=jnp.max(rho0_ref))
+    levels = jnp.linspace(0.1, 5, 10)
+    origin = 'lower'
+    CS = axs[0, 1].contourf(x, y, rho_pred[1][0], levels,
+                       origin=origin,
+                       extend='both')
+    CS2 = axs[0, 1].contour(CS, levels=CS.levels[::2], colors='r', origin=origin)
+    axs[0, 1].clabel(CS2, fmt='%2.1f', colors='w', fontsize=11)
+    # fig.colorbar(im)
+    axs[0, 1].set_xlabel('$x$')
+    axs[0, 1].set_ylabel('$y$')
+    axs[0, 1].set_box_aspect(1)
+    axs[0, 1].set_title(f'Cont.s $\\rho(t={jnp.round(t[1][0][0], 1):.2f}, x, y); ep. {e:.2f}$', fontsize=6)
+
+    cmap = sns.color_palette('icefire', as_cmap=True)
+    # predicted solution
+    # ax1 = fig.add_subplot(242, aspect='equal')
+    im = axs[1, 1].pcolor(x, y, rho_pred[1][0], cmap='rainbow', vmin=jnp.min(rho0_pred[0]), vmax=jnp.max(rho0_pred[0]))
+    fig.colorbar(im,fraction=0.046, pad=0.04)
+    axs[1, 1].set_xlabel('$x$')
+    axs[1, 1].set_ylabel('$y$')
+    axs[1, 1].set_box_aspect(1)
+    axs[1, 1].set_title(f'Predicted $\\rho(t={jnp.round(t[1][0][0], 1):.2f}, x, y)$', fontsize=6)
+
+    # reference solution
+    # ax1 = fig.add_subplot(143, aspect='equal')
+    # im = ax1.pcolor(x, y, rho0_ref, cmap='RdBu', vmin=jnp.min(rho0_ref), vmax=jnp.max(rho0_ref))
+    levels = jnp.linspace(0.1, 5, 10)
+    origin = 'lower'
+    CS = axs[0, 2].contourf(x, y, rho_pred[2][0], levels,
+                       origin=origin,
+                       extend='both')
+    CS2 = axs[0, 2].contour(CS, levels=CS.levels[::2], colors='r', origin=origin)
+    axs[0, 2].clabel(CS2, fmt='%2.1f', colors='w', fontsize=11)
+    # fig.colorbar(im)
+    axs[0, 2].set_xlabel('$x$')
+    axs[0, 2].set_ylabel('$y$')
+    axs[0, 2].set_box_aspect(1)
+    axs[0, 2].set_title(f'Cont.s $\\rho(t={jnp.round(t[2][0][0], 1):.2f}, x, y); ep. {e:.2f}$', fontsize=6)
+
+    cmap = sns.color_palette('icefire', as_cmap=True)
+    # predicted solution
+    # ax1 = fig.add_subplot(243, aspect='equal')
+    im = axs[1, 2].pcolor(x, y, rho_pred[2][0], cmap='rainbow', vmin=jnp.min(rho0_pred[0]), vmax=jnp.max(rho0_pred[0]))
+    fig.colorbar(im,fraction=0.046, pad=0.04)
+    axs[1, 2].set_xlabel('$x$')
+    axs[1, 2].set_ylabel('$y$')
+    axs[1, 2].set_box_aspect(1)
+    axs[1, 2].set_title(f'Predicted $\\rho(t={jnp.round(t[2][0][0], 1):.2f}, x, y)$', fontsize=6)
+
+    # reference solution
+    # ax1 = fig.add_subplot(144, aspect='equal')
+    # im = ax1.pcolor(x, y, rho0_ref, cmap='RdBu', vmin=jnp.min(rho0_ref), vmax=jnp.max(rho0_ref))
+    levels = jnp.linspace(0.01, 5, 10)
+    origin = 'lower'
+    CS = axs[0, 3].contourf(x, y, rho_pred[3][0], levels,
+                       origin=origin,
+                       extend='both')
+    CS2 = axs[0, 3].contour(CS, levels=CS.levels[::2], colors='r', origin=origin)
+    axs[0, 3].clabel(CS2, fmt='%2.1f', colors='w', fontsize=11)
+    # fig.colorbar(im)
+    axs[0, 3].set_xlabel('$x$')
+    axs[0, 3].set_ylabel('$y$')
+    axs[0, 3].set_box_aspect(1)
+    axs[0, 3].set_title(f'Cont.s $\\rho(t={jnp.round(t[3][0][0], 1):.2f}, x, y); ep. {e:.2f}$', fontsize=6)
+
+    cmap = sns.color_palette('icefire', as_cmap=True)
+    # predicted solution
+    # ax1 = fig.add_subplot(244, aspect='equal')
+    im = axs[1, 3].pcolor(x, y, rho_pred[3][0], cmap='rainbow', vmin=jnp.min(rho0_pred[0]), vmax=jnp.max(rho0_pred[0]))
+    fig.colorbar(im,fraction=0.046, pad=0.04)
+    axs[1, 3].set_xlabel('$x$')
+    axs[1, 3].set_ylabel('$y$')
+    axs[1, 3].set_box_aspect(1)
+    axs[1, 3].set_title(f'Predicted $\\rho(t={jnp.round(t[3][0][0], 1):.2f}, x, y)$', fontsize=6)
+
+    # # absolute error
+    # error = jnp.abs(rho0_ref - rho0_pred[0])
+    # ax1 = fig.add_subplot(331, aspect='equal')
+    # im = ax1.pcolor(x, y, error, cmap='rainbow', vmin=jnp.min(error), vmax=jnp.max(error))
+    # ax1.set_xlabel('$x$')
+    # ax1.set_ylabel('$y$')
+    # ax1.set_title(f'Asolute error', fontsize=15)
+    #
+    # # cbar_ax = fig.add_axes([0.95, 0.3, 0.01, 0.4])
+    # fig.colorbar(im)
+
+    plt.savefig(os.path.join(result_dir, f'vis/{e:05d}/pred_t{t[0][0]}.png'))
+    plt.show()
+    plt.close()
 
 
 def _navier_stokes4d(apply_fn, params, test_data, result_dir, e):

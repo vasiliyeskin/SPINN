@@ -268,7 +268,7 @@ def _boussinesq_convection_flow_3d(apply_fn, params, test_data, result_dir, e):
         ax.set(xlabel='x', ylabel='y')
 
     plt.savefig(os.path.join(result_dir, f'vis/{e:05d}/pred_t{t[0][0]}.png'))
-    plt.show()
+    # plt.show()
     plt.close()
 
 
@@ -321,7 +321,7 @@ def _boussinesq_convection_flow_3d(apply_fn, params, test_data, result_dir, e):
     # cbar_ax = fig.add_axes([0.95, 0.3, 0.01, 0.4])
     fig.colorbar(im)
     plt.savefig(os.path.join(result_dir, f'vis/{e:05d}/pred_t{t[0][0]}.png'))
-    plt.show()
+    # plt.show()
     plt.close()
 
 

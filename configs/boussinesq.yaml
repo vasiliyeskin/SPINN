@@ -13,7 +13,7 @@ nxy: 128
 # training settings
 seed: 111
 lr: 1e-3
-epochs: 10000
+epochs: 50000
 offset_num: 8
 offset_iter: 100
 lbda_c: 5000.
@@ -33,10 +33,10 @@ out_dim: 3
 pos_enc: 5
 
 # time marching
-marching_steps: 0
+marching_steps: 10
 step_idx: 0
 time_end: 3.0
 
 # log settings
 log_iter: 10000
-plot_iter: 1000
+plot_iter: 10000

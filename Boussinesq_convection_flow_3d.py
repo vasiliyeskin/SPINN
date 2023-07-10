@@ -162,6 +162,7 @@ def apply_model_spinn_RBA(apply_fn, params, tc, xc, yc, ti, xi, yi, w0_gt, u0_gt
         rho_t = jvp(lambda t: apply_fn(params, t, x, y)[2], (t,), (vec_t,))[1]
         rho_x = jvp(lambda x: apply_fn(params, t, x, y)[2], (x,), (vec_xy,))[1]
         rho_y = jvp(lambda y: apply_fn(params, t, x, y)[2], (y,), (vec_xy,))[1]
+        rho = apply_fn(params, t, x, y)[2]
 
 
         # PDE constraint
@@ -180,13 +181,23 @@ def apply_model_spinn_RBA(apply_fn, params, tc, xc, yc, ti, xi, yi, w0_gt, u0_gt
         # abs_c = jnp.abs(R_c)
         # max_abs_c = jnp.max(abs_c)
 
+        ### rho must be greater then 0
+        R_rho_not_minus = jnp.log(jnp.where(jnp.abs(rho) < 0, (1. - rho) * 1e3, 1.))
+
         # lambda_i__c = gamma * lambda_i__c + eta_star * abs_c / max_abs_c
         # lambda_i__w = gamma * lambda_i__w + eta_star * abs_w / max_abs_w
         # lambda_i__rho = gamma * lambda_i__rho + eta_star * abs_rho / max_abs_rho
 
-        return jnp.mean((lambda_i__w * R_w)**2) +\
-               jnp.mean((lambda_i__c * R_c)**2) +\
-               jnp.mean((lambda_i__rho * R_rho)**2)
+        return jnp.mean((lambda_i__w * R_w) ** 2) +\
+               jnp.mean((lambda_i__c * R_c) ** 2) +\
+               jnp.mean((lambda_i__rho * R_rho) ** 2) +\
+               lbda_ic * jnp.mean((R_rho_not_minus) ** 2)
+
+        # return lbda_w * jnp.mean((lambda_i__w * R_w) ** 2) +\
+        #        lbda_c * jnp.mean((lambda_i__c * R_c) ** 2) +\
+        #        lbda_rho * jnp.mean((lambda_i__rho * R_rho) ** 2) +\
+        #        lbda_rho * jnp.mean((R_rho_not_minus) ** 2)
+
 
     def initial_loss(params, ti, xi, yi, w0_gt, u0_gt, v0_gt, rho0_gt):
         # use initial vorticity and velocity

@@ -181,6 +181,24 @@ class SPINN3d(nn.Module):
                               outputs[1][self.r*i:maxr])]
             pred += [jnp.einsum('fxy, fz->xyz', xy[i], outputs[-1][self.r*i:maxr])]
 
+        #     for i in range(self.out_dim):
+        #         for X in inputs:
+        #             U = nn.activation.tanh(nn.Dense(self.features[0], kernel_init=init)(X))
+        #             V = nn.activation.tanh(nn.Dense(self.features[0], kernel_init=init)(X))
+        #             H = nn.activation.tanh(nn.Dense(self.features[0], kernel_init=init)(X))
+        #             for fs in self.features[:-1]:
+        #                 Z = nn.Dense(fs, kernel_init=init)(H)
+        #                 Z = nn.activation.tanh(Z)
+        #                 H = (jnp.ones_like(Z) - Z) * U + Z * V
+        #             H = nn.Dense(self.r, kernel_init=init)(H)
+        #             outputs += [jnp.transpose(H, (1, 0))]
+        #
+        #     for i in range(self.out_dim):
+        #         xy += [jnp.einsum('fx, fy->fxy',
+        #                           outputs[i * 3 + 0],
+        #                           outputs[i * 3 + 1])]
+        #         pred += [jnp.einsum('fxy, fz->xyz', xy[i], outputs[i * 3 + 2])]
+
         # for i in range(self.out_dim):
         #     xx = outputs[0][self.r*i:self.r*(i+1)]
         #     xx = jnp.repeat(xx[:, :, jnp.newaxis], outputs[1].shape[1], axis=2)

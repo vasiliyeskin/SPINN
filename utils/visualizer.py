@@ -272,6 +272,60 @@ def _boussinesq_convection_flow_3d(apply_fn, params, test_data, result_dir, e):
     plt.close()
 
 
+
+    t = jnp.expand_dims(test_data[0][-1], axis=1)
+    x = test_data[1]
+    y = test_data[2]
+    u0, v0, rho0_pred = apply_fn(params, t, x, y)
+    rho0_pred = rho0_pred.reshape(-1, nx, ny)
+    rho0_ref = test_data[-1][-1]
+
+    os.makedirs(os.path.join(result_dir, f'vis/{e:05d}'), exist_ok=True)
+
+    fig = plt.figure(figsize=(14, 5))
+
+    x, y = jnp.meshgrid(x.ravel(), y.ravel(), indexing='ij')
+
+    # reference solution
+    ax1 = fig.add_subplot(131, aspect='equal')
+    # im = ax1.pcolor(x, y, rho0_ref, cmap='RdBu', vmin=jnp.min(rho0_ref), vmax=jnp.max(rho0_ref))
+    levels = jnp.linspace(0.1, 5, 10)
+    origin = 'lower'
+    CS = ax1.contourf(x, y, rho0_pred[0], levels,
+                       origin=origin,
+                       extend='both')
+    CS2 = ax1.contour(CS, levels=CS.levels[::2], colors='r', origin=origin)
+    ax1.clabel(CS2, fmt='%2.1f', colors='w', fontsize=11)
+    # fig.colorbar(im)
+    ax1.set_xlabel('$x$')
+    ax1.set_ylabel('$y$')
+    ax1.set_title(f'Cont.s $\\rho(t={jnp.round(t[0][0], 1):.2f}, x, y); ep. {e:.2f}$', fontsize=15)
+
+    cmap = sns.color_palette('icefire', as_cmap=True)
+    # predicted solution
+    ax1 = fig.add_subplot(132, aspect='equal')
+    im = ax1.pcolor(x, y, rho0_pred[0], cmap='rainbow', vmin=jnp.min(rho0_pred[0]), vmax=jnp.max(rho0_pred[0]))
+    fig.colorbar(im)
+    ax1.set_xlabel('$x$')
+    ax1.set_ylabel('$y$')
+    ax1.set_title(f'Predicted $\\rho(t={jnp.round(t[0][0], 1):.2f}, x, y)$', fontsize=15)
+
+    # absolute error
+    error = jnp.abs(rho0_ref - rho0_pred[0])
+    ax1 = fig.add_subplot(133, aspect='equal')
+    im = ax1.pcolor(x, y, error, cmap='rainbow', vmin=jnp.min(error), vmax=jnp.max(error))
+    ax1.set_xlabel('$x$')
+    ax1.set_ylabel('$y$')
+    ax1.set_title(f'Asolute error', fontsize=15)
+
+    # cbar_ax = fig.add_axes([0.95, 0.3, 0.01, 0.4])
+    fig.colorbar(im)
+    plt.savefig(os.path.join(result_dir, f'vis/{e:05d}/pred_t{t[0][0]}.png'))
+    plt.show()
+    plt.close()
+
+
+
     #
     # nt, nx, ny = test_data[0].shape[0], test_data[1].shape[0], test_data[2].shape[0]
     # for t_i in [test_data[0][0], test_data[0][nt//3], test_data[0][2 * nt//3],test_data[0][-1]]:

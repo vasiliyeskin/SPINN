@@ -7,6 +7,7 @@ from utils.vorticity import velocity_to_vorticity_fwd
 from utils.data_utils import helmholtz3d_exact_u, klein_gordon3d_exact_u
 from utils.vorticity import vorx, vory, vorz
 import seaborn as sns
+from utils.residualValues import get_residuals
 
 import pdb
 
@@ -229,7 +230,8 @@ def _boussinesq_convection_flow_3d(apply_fn, params, test_data, result_dir, e):
 
     i=0
     t = []
-    rho_pred, rho0_ref = [], []
+    rho_pred, rho0_ref, w_pred, uu, vv = [], [], [], [], []
+    abs_rho, abs_w, abs_c = [], [], []
     for t_i in [test_data[0][0], test_data[0][nt//3], test_data[0][2 * nt//3],test_data[0][-1]]:
         t += [jnp.expand_dims(t_i, axis=1)]
 
@@ -237,7 +239,17 @@ def _boussinesq_convection_flow_3d(apply_fn, params, test_data, result_dir, e):
         y = test_data[2]
         u0, v0, rho0_pred = apply_fn(params, t[i], x, y)
         rho_pred += [rho0_pred.reshape(-1, nx, ny)]
+        uu += [u0.reshape(-1, nx, ny)]
+        vv += [v0.reshape(-1, nx, ny)]
         rho0_ref += [test_data[-1][-1]]
+        w_pr = velocity_to_vorticity_fwd(apply_fn, params, t[i], x, y)
+        w_pred += [w_pr.reshape(-1, nx, ny)]
+
+        buf_abs_rho, buf_abs_w, buf_abs_c = get_residuals(apply_fn, params, t[i], x, y)
+        abs_rho += [buf_abs_rho.reshape(-1, nx, ny)]
+        abs_w += [buf_abs_w.reshape(-1, nx, ny)]
+        abs_c += [buf_abs_c.reshape(-1, nx, ny)]
+
         i += 1
 
     os.makedirs(os.path.join(result_dir, f'vis/{e:05d}'), exist_ok=True)
@@ -259,7 +271,7 @@ def _boussinesq_convection_flow_3d(apply_fn, params, test_data, result_dir, e):
         axs[0, i].set_title(f'$\\rho(t={jnp.round(t[i][0][0], 1):.2f}, x, y); ep. {e:.2f}$', fontsize=6)
 
         cmap = sns.color_palette('icefire', as_cmap=True)
-        im = axs[1, i].pcolor(x, y, rho_pred[i][0], cmap='rainbow', vmin=jnp.min(rho0_pred[i]), vmax=jnp.max(rho0_pred[i]))
+        im = axs[1, i].pcolor(x, y, rho_pred[i][0], cmap='rainbow', vmin=jnp.min(rho_pred[i]), vmax=jnp.max(rho_pred[i]))
         fig.colorbar(im,fraction=0.046, pad=0.04)
         axs[1, i].set_box_aspect(1)
         axs[1, i].set_title(f'$\\rho(t={jnp.round(t[i][0][0], 1):.2f}, x, y)$', fontsize=6)
@@ -267,62 +279,112 @@ def _boussinesq_convection_flow_3d(apply_fn, params, test_data, result_dir, e):
     for ax in axs.flat:
         ax.set(xlabel='x', ylabel='y')
 
-    plt.savefig(os.path.join(result_dir, f'vis/{e:05d}/pred_t{t[0][0]}.png'))
-    # plt.show()
+    plt.savefig(os.path.join(result_dir, f'vis/{e:05d}/pred_rho_t{t[0][0]}.png'))
+    plt.show()
+    plt.close()
+
+
+    fig, axs = plt.subplots(3, 4, sharex='col', sharey='row')
+    for i in range(n_cols):
+        im = axs[0, i].pcolor(x, y, uu[i][0], cmap='rainbow', vmin=jnp.min(uu[i][0]), vmax=jnp.max(uu[i][0]))
+        fig.colorbar(im, fraction=0.046, pad=0.04)
+        axs[0, i].set_box_aspect(1)
+        axs[0, i].set_title(f'u (t={jnp.round(t[i][0][0], 1):.2f}, x, y)', fontsize=6)
+
+        im = axs[1, i].pcolor(x, y, vv[i][0], cmap='rainbow', vmin=jnp.min(vv[i][0]), vmax=jnp.max(vv[i][0]))
+        fig.colorbar(im, fraction=0.046, pad=0.04)
+        axs[1, i].set_box_aspect(1)
+        axs[1, i].set_title(f'v (t={jnp.round(t[i][0][0], 1):.2f}, x, y)', fontsize=6)
+
+        im = axs[2, i].pcolor(x, y, w_pred[i][0], cmap='rainbow', vmin=jnp.min(w_pred[i][0]), vmax=jnp.max(w_pred[i][0]))
+        fig.colorbar(im,fraction=0.046, pad=0.04)
+        axs[2, i].set_box_aspect(1)
+        axs[2, i].set_title(f'$omega (t={jnp.round(t[i][0][0], 1):.2f}, x, y)$', fontsize=6)
+
+    # for ax in axs.flat:
+    #     ax.set(xlabel='x', ylabel='y')
+    plt.savefig(os.path.join(result_dir, f'vis/{e:05d}/pred_uvw.png'))
+    plt.show()
+    plt.close()
+
+
+    fig, axs = plt.subplots(3, 4, sharex='col', sharey='row')
+    for i in range(n_cols):
+        im = axs[0, i].pcolor(x, y, abs_c[i][0], cmap='rainbow', vmin=jnp.min(abs_c[i][0]), vmax=jnp.max(abs_c[i][0]))
+        fig.colorbar(im, fraction=0.046, pad=0.04)
+        axs[0, i].set_box_aspect(1)
+        axs[0, i].set_title(f'residual c (t={jnp.round(t[i][0][0], 1):.2f}, x, y)', fontsize=6)
+
+        im = axs[1, i].pcolor(x, y, abs_rho[i][0], cmap='rainbow', vmin=jnp.min(abs_rho[i][0]), vmax=jnp.max(abs_rho[i][0]))
+        fig.colorbar(im, fraction=0.046, pad=0.04)
+        axs[1, i].set_box_aspect(1)
+        axs[1, i].set_title(f'residual rho (t={jnp.round(t[i][0][0], 1):.2f}, x, y)', fontsize=6)
+
+        im = axs[2, i].pcolor(x, y, abs_w[i][0], cmap='rainbow', vmin=jnp.min(abs_w[i][0]), vmax=jnp.max(abs_w[i][0]))
+        fig.colorbar(im,fraction=0.046, pad=0.04)
+        axs[2, i].set_box_aspect(1)
+        axs[2, i].set_title(f'residual w (t={jnp.round(t[i][0][0], 1):.2f}, x, y)', fontsize=6)
+
+    # for ax in axs.flat:
+    #     ax.set(xlabel='x', ylabel='y')
+    plt.savefig(os.path.join(result_dir, f'vis/{e:05d}/pred_uvw.png'))
+    plt.show()
     plt.close()
 
 
 
-    t = jnp.expand_dims(test_data[0][-1], axis=1)
-    x = test_data[1]
-    y = test_data[2]
-    u0, v0, rho0_pred = apply_fn(params, t, x, y)
-    rho0_pred = rho0_pred.reshape(-1, nx, ny)
-    rho0_ref = test_data[-1][-1]
 
-    os.makedirs(os.path.join(result_dir, f'vis/{e:05d}'), exist_ok=True)
-
-    fig = plt.figure(figsize=(14, 5))
-
-    x, y = jnp.meshgrid(x.ravel(), y.ravel(), indexing='ij')
-
-    # reference solution
-    ax1 = fig.add_subplot(131, aspect='equal')
-    # im = ax1.pcolor(x, y, rho0_ref, cmap='RdBu', vmin=jnp.min(rho0_ref), vmax=jnp.max(rho0_ref))
-    levels = jnp.linspace(0.1, 5, 10)
-    origin = 'lower'
-    CS = ax1.contourf(x, y, rho0_pred[0], levels,
-                       origin=origin,
-                       extend='both')
-    CS2 = ax1.contour(CS, levels=CS.levels[::2], colors='r', origin=origin)
-    ax1.clabel(CS2, fmt='%2.1f', colors='w', fontsize=11)
+    # t = jnp.expand_dims(test_data[0][-1], axis=1)
+    # x = test_data[1]
+    # y = test_data[2]
+    # u0, v0, rho0_pred = apply_fn(params, t, x, y)
+    # rho0_pred = rho0_pred.reshape(-1, nx, ny)
+    # rho0_ref = test_data[-1][-1]
+    #
+    # os.makedirs(os.path.join(result_dir, f'vis/{e:05d}'), exist_ok=True)
+    #
+    # fig = plt.figure(figsize=(14, 5))
+    #
+    # x, y = jnp.meshgrid(x.ravel(), y.ravel(), indexing='ij')
+    #
+    # # reference solution
+    # ax1 = fig.add_subplot(131, aspect='equal')
+    # # im = ax1.pcolor(x, y, rho0_ref, cmap='RdBu', vmin=jnp.min(rho0_ref), vmax=jnp.max(rho0_ref))
+    # levels = jnp.linspace(0.1, 5, 10)
+    # origin = 'lower'
+    # CS = ax1.contourf(x, y, rho0_pred[0], levels,
+    #                    origin=origin,
+    #                    extend='both')
+    # CS2 = ax1.contour(CS, levels=CS.levels[::2], colors='r', origin=origin)
+    # ax1.clabel(CS2, fmt='%2.1f', colors='w', fontsize=11)
+    # # fig.colorbar(im)
+    # ax1.set_xlabel('$x$')
+    # ax1.set_ylabel('$y$')
+    # ax1.set_title(f'Cont.s $\\rho(t={jnp.round(t[0][0], 1):.2f}, x, y); ep. {e:.2f}$', fontsize=15)
+    #
+    # cmap = sns.color_palette('icefire', as_cmap=True)
+    # # predicted solution
+    # ax1 = fig.add_subplot(132, aspect='equal')
+    # im = ax1.pcolor(x, y, rho0_pred[0], cmap='rainbow', vmin=jnp.min(rho0_pred[0]), vmax=jnp.max(rho0_pred[0]))
     # fig.colorbar(im)
-    ax1.set_xlabel('$x$')
-    ax1.set_ylabel('$y$')
-    ax1.set_title(f'Cont.s $\\rho(t={jnp.round(t[0][0], 1):.2f}, x, y); ep. {e:.2f}$', fontsize=15)
-
-    cmap = sns.color_palette('icefire', as_cmap=True)
-    # predicted solution
-    ax1 = fig.add_subplot(132, aspect='equal')
-    im = ax1.pcolor(x, y, rho0_pred[0], cmap='rainbow', vmin=jnp.min(rho0_pred[0]), vmax=jnp.max(rho0_pred[0]))
-    fig.colorbar(im)
-    ax1.set_xlabel('$x$')
-    ax1.set_ylabel('$y$')
-    ax1.set_title(f'Predicted $\\rho(t={jnp.round(t[0][0], 1):.2f}, x, y)$', fontsize=15)
-
-    # absolute error
-    error = jnp.abs(rho0_ref - rho0_pred[0])
-    ax1 = fig.add_subplot(133, aspect='equal')
-    im = ax1.pcolor(x, y, error, cmap='rainbow', vmin=jnp.min(error), vmax=jnp.max(error))
-    ax1.set_xlabel('$x$')
-    ax1.set_ylabel('$y$')
-    ax1.set_title(f'Asolute error', fontsize=15)
-
-    # cbar_ax = fig.add_axes([0.95, 0.3, 0.01, 0.4])
-    fig.colorbar(im)
-    plt.savefig(os.path.join(result_dir, f'vis/{e:05d}/pred_t{t[0][0]}.png'))
+    # ax1.set_xlabel('$x$')
+    # ax1.set_ylabel('$y$')
+    # ax1.set_title(f'Predicted $\\rho(t={jnp.round(t[0][0], 1):.2f}, x, y)$', fontsize=15)
+    #
+    # # absolute error
+    # error = jnp.abs(rho0_ref - rho0_pred[0])
+    # ax1 = fig.add_subplot(133, aspect='equal')
+    # im = ax1.pcolor(x, y, error, cmap='rainbow', vmin=jnp.min(error), vmax=jnp.max(error))
+    # ax1.set_xlabel('$x$')
+    # ax1.set_ylabel('$y$')
+    # ax1.set_title(f'Asolute error', fontsize=15)
+    #
+    # # cbar_ax = fig.add_axes([0.95, 0.3, 0.01, 0.4])
+    # fig.colorbar(im)
+    # plt.savefig(os.path.join(result_dir, f'vis/{e:05d}/pred_t{t[0][0]}.png'))
     # plt.show()
-    plt.close()
+    # plt.close()
+
 
 
 

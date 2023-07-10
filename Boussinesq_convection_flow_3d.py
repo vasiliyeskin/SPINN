@@ -59,20 +59,28 @@ def apply_model_spinn(apply_fn, params, tc, xc, yc, ti, xi, yi, w0_gt, u0_gt, v0
         v_y = jvp(lambda y: apply_fn(params, t, x, y)[1], (y,), (vec_xy,))[1]
         R_c = u_x + v_y
 
-        return lbda_w * jnp.mean(R_w**2) + lbda_c*jnp.mean(R_c**2) + lbda_rho * jnp.mean(R_rho**2)
+        return lbda_w * jnp.mean(R_w**2) +\
+               lbda_c * jnp.mean(R_c**2) +\
+               lbda_rho * jnp.mean(R_rho**2)
 
     def initial_loss(params, ti, xi, yi, w0_gt, u0_gt, v0_gt, rho0_gt):
         # use initial vorticity and velocity
         w0 = velocity_to_vorticity_fwd(apply_fn, params, ti, xi, yi)
-        R_ic_w = jnp.squeeze(w0) - w0_gt 
+        # R_ic_w = jnp.squeeze(w0) - w0_gt
+        R_ic_w = w0 - w0_gt
         u0, v0, rho0 = apply_fn(params, ti, xi, yi)
-        R_ic_u = jnp.squeeze(u0) - u0_gt
-        R_ic_v = jnp.squeeze(v0) - v0_gt
-        R_ic_rho = jnp.squeeze(rho0) - rho0_gt
+        # R_ic_u = jnp.squeeze(u0) - u0_gt
+        # R_ic_v = jnp.squeeze(v0) - v0_gt
+        # R_ic_rho = jnp.squeeze(rho0) - rho0_gt
+        R_ic_u = u0 - u0_gt
+        R_ic_v = v0 - v0_gt
+        R_ic_rho = rho0 - rho0_gt
         loss = jnp.mean(jnp.square(R_ic_w)) +\
                jnp.mean(jnp.square(R_ic_u)) +\
                jnp.mean(jnp.square(R_ic_v)) +\
                jnp.mean(jnp.square(R_ic_rho))
+        # loss = jnp.mean(jnp.square(R_ic_w)) +\
+        #        jnp.mean(jnp.square(R_ic_rho))
 
         return loss
 
@@ -132,7 +140,7 @@ def get_lambdas(apply_fn, params, t, x, y, gamma, eta_star, lambda_i__c, lambda_
     lambda_i__w = gamma * lambda_i__w + eta_star * abs_w / max_abs_w
     lambda_i__rho = gamma * lambda_i__rho + eta_star * abs_rho / max_abs_rho
 
-    return lambda_i__c, lambda_i__w, lambda_i__rho
+    return lambda_i__c, lambda_i__w, lambda_i__rho, abs_rho, abs_w, abs_c
 
 
 # loss function for Boussinesq convection flow (SPINN)
@@ -190,8 +198,9 @@ def apply_model_spinn_RBA(apply_fn, params, tc, xc, yc, ti, xi, yi, w0_gt, u0_gt
 
         return jnp.mean((lambda_i__w * R_w) ** 2) +\
                jnp.mean((lambda_i__c * R_c) ** 2) +\
-               jnp.mean((lambda_i__rho * R_rho) ** 2) +\
-               lbda_ic * jnp.mean((R_rho_not_minus) ** 2)
+               jnp.mean((lambda_i__rho * R_rho) ** 2)\
+               # +\
+               # lbda_ic * jnp.mean((R_rho_not_minus) ** 2)
 
         # return lbda_w * jnp.mean((lambda_i__w * R_w) ** 2) +\
         #        lbda_c * jnp.mean((lambda_i__c * R_c) ** 2) +\
@@ -334,15 +343,15 @@ if __name__ == '__main__':
             # exclude compiling time
             start = time.time()
 
-        if e % args.offset_iter == 0:
-            # change input
-            offset_idx = (e // args.offset_iter) % args.offset_num
-            tc, xc, yc = tc_mult[offset_idx], xc_mult[offset_idx], yc_mult[offset_idx]
+        # if e % args.offset_iter == 0:
+        #     # change input
+        #     offset_idx = (e // args.offset_iter) % args.offset_num
+        #     tc, xc, yc = tc_mult[offset_idx], xc_mult[offset_idx], yc_mult[offset_idx]
 
         if args.RBA:
             ### approach from the paper https://arxiv.org/abs/2307.00379
             gamma, eta_star = args.gamma, args.eta_star
-            lambda_i__c, lambda_i__w, lambda_i__rho = get_lambdas(apply_fn,params, tc, xc, yc, gamma, eta_star, lambda_i__c, lambda_i__w, lambda_i__rho)
+            lambda_i__c, lambda_i__w, lambda_i__rho, _, _, _ = get_lambdas(apply_fn,params, tc, xc, yc, gamma, eta_star, lambda_i__c, lambda_i__w, lambda_i__rho)
             loss, gradient = apply_model_spinn_RBA(apply_fn, params, tc, xc, yc, ti, xi, yi, w0, u0, v0, rho0, args.lbda_c, args.lbda_ic, args.lbda_rho, args.lbda_w, lambda_i__c, lambda_i__w, lambda_i__rho)
             #
             # print(lambda_i__c)

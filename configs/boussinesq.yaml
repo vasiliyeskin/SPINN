@@ -20,7 +20,7 @@ lbda_c: 5000.
 lbda_rho: 100.
 lbda_w: 100.
 lbda_ic: 10000.
-RBA: False
+RBA: True
 gamma: 0.999
 eta_star: 0.01
 

@@ -343,10 +343,10 @@ if __name__ == '__main__':
             # exclude compiling time
             start = time.time()
 
-        # if e % args.offset_iter == 0:
-        #     # change input
-        #     offset_idx = (e // args.offset_iter) % args.offset_num
-        #     tc, xc, yc = tc_mult[offset_idx], xc_mult[offset_idx], yc_mult[offset_idx]
+        if e % args.offset_iter == 0:
+            # change input
+            offset_idx = (e // args.offset_iter) % args.offset_num
+            tc, xc, yc = tc_mult[offset_idx], xc_mult[offset_idx], yc_mult[offset_idx]
 
         if args.RBA:
             ### approach from the paper https://arxiv.org/abs/2307.00379

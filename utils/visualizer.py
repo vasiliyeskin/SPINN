@@ -280,7 +280,7 @@ def _boussinesq_convection_flow_3d(apply_fn, params, test_data, result_dir, e):
         ax.set(xlabel='x', ylabel='y')
 
     plt.savefig(os.path.join(result_dir, f'vis/{e:05d}/pred_rho_t{t[0][0]}.png'))
-    plt.show()
+    # plt.show()
     plt.close()
 
 
@@ -304,7 +304,7 @@ def _boussinesq_convection_flow_3d(apply_fn, params, test_data, result_dir, e):
     # for ax in axs.flat:
     #     ax.set(xlabel='x', ylabel='y')
     plt.savefig(os.path.join(result_dir, f'vis/{e:05d}/pred_uvw.png'))
-    plt.show()
+    # plt.show()
     plt.close()
 
 
@@ -327,8 +327,8 @@ def _boussinesq_convection_flow_3d(apply_fn, params, test_data, result_dir, e):
 
     # for ax in axs.flat:
     #     ax.set(xlabel='x', ylabel='y')
-    plt.savefig(os.path.join(result_dir, f'vis/{e:05d}/pred_uvw.png'))
-    plt.show()
+    plt.savefig(os.path.join(result_dir, f'vis/{e:05d}/pred_residuals.png'))
+    # plt.show()
     plt.close()
 
 

@@ -589,10 +589,10 @@ def _test_generator_klein_gordon3d(model, nc_test, k):
 
 #----------------------- Boussinesq convection flow 3-d -------------------------#
 # def _test_generator_Boussinesq_convection_flow_3d(time_end, model, nc_test):
-def _test_generator_Boussinesq_convection_flow_3d(time_end, model, nc_test, data_dir, result_dir, marching_steps, step_idx):
+def _test_generator_Boussinesq_convection_flow_3d(time_end, model, nc_test, data_dir, result_dir, marching_steps, step_idx, nxy):
     t = jnp.linspace(start=0., stop=time_end, num=nc_test)
-    x = jnp.linspace(0, 2*jnp.pi, 128)
-    y = jnp.linspace(0, 2*jnp.pi, 128)
+    x = jnp.linspace(0, 2*jnp.pi, nxy)
+    y = jnp.linspace(0, 2*jnp.pi, nxy)
     t = jax.lax.stop_gradient(t)
     x = jax.lax.stop_gradient(x)
     y = jax.lax.stop_gradient(y)
@@ -756,7 +756,7 @@ def generate_test_data(args, result_dir):
 
     elif eqn == 'Boussinesq_convection_flow_3d':
         data = _test_generator_Boussinesq_convection_flow_3d(
-            args.time_end, args.model, 10, args.data_dir, result_dir, args.marching_steps, args.step_idx
+            args.time_end, args.model, 10, args.data_dir, result_dir, args.marching_steps, args.step_idx, args.nxy
         )
     elif eqn == 'navier_stokes4d':
         data = _test_generator_navier_stokes4d(

@@ -7,12 +7,12 @@ model: 'spinn'
 equation: 'Boussinesq_convection_flow_3d'
 
 # input data settings
-nt: 32
-nxy: 256
+nt: 128
+nxy: 128
 
 # training settings
 seed: 111
-lr: 2e-3
+lr: 1e-3
 epochs: 100000
 offset_num: 8
 offset_iter: 100
@@ -27,15 +27,15 @@ eta_star: 0.01
 # model settings
 mlp: modified_mlp
 n_layers: 3
-features: 128
-r: 128
+features: 512
+r: 512
 out_dim: 3
 pos_enc: 5
 
 # time marching
 marching_steps: 10
 step_idx: 0
-time_end: 3.0
+time_end: 2.0
 
 # log settings
 log_iter: 10000

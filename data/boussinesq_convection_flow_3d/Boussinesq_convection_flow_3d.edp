@@ -1,0 +1,155 @@
+/****************************************************************************/
+/* This file is part of FreeFEM.                                            */
+/*                                                                          */
+/* FreeFEM is free software: you can redistribute it and/or modify          */
+/* it under the terms of the GNU Lesser General Public License as           */
+/* published by the Free Software Foundation, either version 3 of           */
+/* the License, or (at your option) any later version.                      */
+/*                                                                          */
+/* FreeFEM is distributed in the hope that it will be useful,               */
+/* but WITHOUT ANY WARRANTY; without even the implied warranty of           */
+/* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the            */
+/* GNU Lesser General Public License for more details.                      */
+/*                                                                          */
+/* You should have received a copy of the GNU Lesser General Public License */
+/* along with FreeFEM. If not, see <http://www.gnu.org/licenses/>.          */
+/****************************************************************************/
+// Author: Vasiliy A. Es'kin
+// (jul. 2023)
+
+verbosity=0;
+
+// Parameters
+int n = 100;
+real nu = 0.0025; // Reynolds=200
+real dt = 0.01;
+real MaxTime = 3.;
+real epsv = 1e-6, epsu = 1e-6, epsp = 1e-6, epsr = 1e-6;// Eps CG ..
+
+// Mesh
+/*
+border a0(t=0, 1){x=0; y= 2 * pi * t; label=1;} // inlet
+border a1(t=0, 1){x=2 * pi * t; y=2 * pi; label=2;}
+border a4(t=1, 0){x=2 * pi; y=2 * pi * t; label=3;} // outlet
+border a5(t=1, 0){x=2 * pi * t; y=0; label=4;}
+*/
+
+// Mesh
+mesh Th = square(256, 256, [2*x*pi, 2*y*pi]);
+
+// Fespace
+//defined the fespace with periodic condition
+//label: 2 and 4 are left and right side with y the curve abscissa
+//       1 and 2 are bottom and upper side with x the curve abscissa
+fespace Vh(Th, P1, periodic=[[2, y], [4, y], [1, x], [3, x]]);
+
+//mesh Th = buildmesh(a0(-n) + a1(-n) + a4(-n) + a5(-n));
+plot(Th, wait=1);
+
+// Fespace
+//fespace Vh(Th, P1);
+Vh w;
+Vh u=0, v=0;
+Vh p=0;
+Vh q=0, T = 0;
+Vh rho=0, rho1=0, rho2=0;
+Vh r1=0, r2=0, r3=0, dev1;
+
+// Definitions of Matrix dtMx and dtMy
+matrix dtM1x, dtM1y;
+
+macro  BuildMat()
+  { /* for memory managenemt */
+    varf vM(unused, v) = int2d(Th)(v) ;
+    varf vdx(u, v) = int2d(Th)(v*dx(u)*dt) ;
+    varf vdy(u, v) = int2d(Th)(v*dy(u)*dt) ;
+
+    real[int] Mlump = vM(0, Vh);
+    real[int] one(Vh.ndof); one = 1;
+    real[int] M1 = one ./ Mlump;
+    matrix dM1 = M1;
+    matrix Mdx = vdx(Vh, Vh);
+    matrix Mdy = vdy(Vh, Vh);
+    dtM1x = dM1*Mdx;
+    dtM1y = dM1*Mdy;
+  }//
+
+BuildMat
+
+//T = 35 - 10*((x<1)*(y<0.5) + (x>=1)	*(y+0.1*(x-1)<0.5));
+//plot(T, value=true, fill=true, wait=1);
+
+
+r1 = sqrt(y^2 + (x - pi)^2.);
+r2 = abs(y - 2. * pi);
+r3 = 1.95 * pi;
+dev1 = (pi^ 2. - r1^ 2.) * (abs(r1) < pi) + 1 * (abs(r1) >= pi);
+rho1 = rho1 + exp(1 - pi^ 2. / dev1) * (abs(r1) < pi);
+dev1 = (r3^ 2. - r2^ 2.) * (r2 < r3) + 1. * (r2 >= r3);
+rho2 = exp(1 - r3^ 2. / dev1) * (r2 < r3);
+rho = 50 * rho1 * rho2 * (1. - rho1);
+//cout << " rho " <<rho << endl;
+plot(rho, value=true, fill=true, wait=1);
+
+
+
+real err = 1, outflux = 1;
+for(int n = 0; n < MaxTime / dt; n++) {
+  Vh uold = u, vold = v, pold = p, rhoold = rho;
+
+  solve pb4u(u, w, init=n, solver=CG, eps=epsu)
+    = int2d(Th)(
+      u*w/dt
+    )
+    - int2d(Th)(
+      (convect([uold, vold], -dt, uold)/dt - dx(p))*w
+    );
+  //plot(u);
+
+  solve pb4v(v, w, init=n, solver=CG, eps=epsv)
+    = int2d(Th)(
+      v*w/dt
+    )
+    - int2d(Th)(
+      (convect([uold, vold], -dt, vold)/dt - dy(p) + rho)*w
+    );
+		
+
+  solve pb4rho(rho, w, init=n, solver=CG, eps=epsr)
+    = int2d(Th)(
+      rho*w/dt
+    )
+    - int2d(Th)(
+      (convect([uold, vold], -dt, rhoold)/dt)*w
+    );
+  plot(rho, value=true, fill=true);
+
+  solve pb4p(q, w, solver=CG, init=n, eps=epsp)
+    = int2d(Th)(dx(q)*dx(w) + dy(q)*dy(w))
+    - int2d(Th)((dx(u) + dy(v))*w/dt);
+
+  // to have absolute epsilon in CG algorithm.
+  epsv = -abs(epsv);
+  epsu = -abs(epsu);
+  epsp = -abs(epsp);
+  epsr = -abs(epsr);
+
+  p = pold-q;
+  u[] += dtM1x*q[];
+  v[] += dtM1y*q[];
+
+  /*if(n%50 == 49) {
+    Th = adaptmesh(Th, [u, v, rho], q, err=0.06, nbvx=100000);
+    plot(Th, wait=true);
+    BuildMat // rebuild mat.
+  }*/
+
+  err = sqrt(int2d(Th)(square(u - uold) + square(v - vold))/Th.area);
+  outflux = int1d(Th)([u, v]'*[N.x, N.y]) ;
+  cout << " iter " << n << " Err L2 = " << err << " - Outflow = " << outflux << endl;
+  cout << " Time " << n * dt << endl;
+  if (err < 1e-3) break;
+}
+assert(abs(outflux) < 5e-3); // verification
+plot(p, wait=1, ps="NSprojP.eps");
+plot(u, wait=1, ps="NSprojU.eps");
